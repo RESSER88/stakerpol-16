@@ -2,30 +2,50 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Grid, Table as TableIcon } from 'lucide-react';
-import { useProductManager } from '@/hooks/useProductManager';
+import { useToast } from '@/hooks/use-toast';
 import ProductList from './ProductList';
 import ProductDetailsModal from './ProductDetailsModal';
-import { useToast } from '@/hooks/use-toast';
+import { Product } from '@/types';
 
-const ProductManager = () => {
+interface ProductManagerProps {
+  // State
+  isEditDialogOpen: boolean;
+  setIsEditDialogOpen: (open: boolean) => void;
+  selectedProduct: Product | null;
+  productImages: string[];
+  setProductImages: (images: string[]) => void;
+  viewMode: 'grid' | 'table';
+  setViewMode: (mode: 'grid' | 'table') => void;
+  products: Product[];
+  defaultNewProduct: Product;
+  
+  // Actions
+  handleEdit: (product: Product) => void;
+  handleAdd: () => void;
+  handleCopy: (product: Product) => void;
+  handleDelete: (product: Product) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
+}
+
+const ProductManager = ({
+  isEditDialogOpen,
+  setIsEditDialogOpen,
+  selectedProduct,
+  productImages,
+  setProductImages,
+  viewMode,
+  setViewMode,
+  products,
+  defaultNewProduct,
+  handleEdit,
+  handleAdd,
+  handleCopy,
+  handleDelete,
+  addProduct,
+  updateProduct
+}: ProductManagerProps) => {
   const { toast } = useToast();
-  const {
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedProduct,
-    productImages,
-    setProductImages,
-    viewMode,
-    setViewMode,
-    products,
-    defaultNewProduct,
-    handleEdit,
-    handleAdd,
-    handleCopy,
-    handleDelete,
-    addProduct,
-    updateProduct
-  } = useProductManager();
 
   const handleSave = (product: any, images: string[]) => {
     const productToSave = {

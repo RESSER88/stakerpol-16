@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Upload, X, Star, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { optimizeImage, validateImageFile, createImagePreview } from '@/utils/imageOptimization';
 import { cn } from '@/lib/utils';
 
@@ -10,18 +11,46 @@ interface ProductImageManagerProps {
   maxImages?: number;
   currentImages?: string[];
   className?: string;
+  useSupabaseStorage?: boolean;
 }
 
 const ProductImageManager = ({ 
   onImagesChange, 
   maxImages = 10, 
   currentImages = [],
-  className 
+  className,
+  useSupabaseStorage = false
 }: ProductImageManagerProps) => {
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState<string[]>(currentImages);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const { toast } = useToast();
+
+  const uploadToSupabaseStorage = async (file: File, fileName: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) {
+        console.error('Error uploading to Supabase Storage:', error);
+        return null;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error with Supabase Storage upload:', error);
+      return null;
+    }
+  };
 
   const handleFileSelect = useCallback(async (files: FileList) => {
     if (previews.length >= maxImages) {
@@ -59,9 +88,30 @@ const ProductImageManager = ({
           format: 'webp'
         });
 
-        // Create preview
-        const preview = await createImagePreview(optimizedFile);
-        newPreviews.push(preview);
+        let finalUrl: string;
+
+        if (useSupabaseStorage) {
+          // Upload to Supabase Storage
+          const timestamp = Date.now();
+          const fileName = `product-${timestamp}-${i}.webp`;
+          const uploadedUrl = await uploadToSupabaseStorage(optimizedFile, fileName);
+          
+          if (!uploadedUrl) {
+            toast({
+              title: "Błąd uploadu",
+              description: "Nie udało się przesłać zdjęcia do Supabase Storage",
+              variant: "destructive"
+            });
+            continue;
+          }
+          
+          finalUrl = uploadedUrl;
+        } else {
+          // Create local preview
+          finalUrl = await createImagePreview(optimizedFile);
+        }
+
+        newPreviews.push(finalUrl);
       }
 
       const updatedPreviews = [...previews, ...newPreviews];
@@ -71,7 +121,7 @@ const ProductImageManager = ({
       if (newPreviews.length > 0) {
         toast({
           title: "Zdjęcia dodane",
-          description: `Dodano ${newPreviews.length} zoptymalizowanych zdjęć`
+          description: `Dodano ${newPreviews.length} ${useSupabaseStorage ? 'zdjęć do Supabase Storage' : 'zoptymalizowanych zdjęć'}`
         });
       }
     } catch (error) {
@@ -84,7 +134,7 @@ const ProductImageManager = ({
     } finally {
       setUploading(false);
     }
-  }, [previews, maxImages, onImagesChange, toast]);
+  }, [previews, maxImages, onImagesChange, toast, useSupabaseStorage]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -101,7 +151,23 @@ const ProductImageManager = ({
     }
   }, [handleFileSelect]);
 
-  const removeImage = useCallback((index: number) => {
+  const removeImage = useCallback(async (index: number) => {
+    const imageUrl = previews[index];
+    
+    // If using Supabase Storage, try to delete the file
+    if (useSupabaseStorage && imageUrl.includes('supabase.co/storage')) {
+      try {
+        const urlParts = imageUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        
+        await supabase.storage
+          .from('product-images')
+          .remove([fileName]);
+      } catch (error) {
+        console.error('Error deleting from Supabase Storage:', error);
+      }
+    }
+    
     const updatedPreviews = previews.filter((_, i) => i !== index);
     setPreviews(updatedPreviews);
     onImagesChange(updatedPreviews);
@@ -112,7 +178,7 @@ const ProductImageManager = ({
     } else if (index <= mainImageIndex && mainImageIndex > 0) {
       setMainImageIndex(mainImageIndex - 1);
     }
-  }, [previews, onImagesChange, mainImageIndex]);
+  }, [previews, onImagesChange, mainImageIndex, useSupabaseStorage]);
 
   const setAsMainImage = useCallback((index: number) => {
     setMainImageIndex(index);
@@ -179,7 +245,9 @@ const ProductImageManager = ({
             Przeciągnij zdjęcia tutaj lub kliknij, aby wybrać (maksymalnie {maxImages})
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Obsługiwane formaty: JPG, PNG, WebP • Automatyczna optymalizacja • Max 300KB
+            Obsługiwane formaty: JPG, PNG, WebP • 
+            {useSupabaseStorage ? ' Upload do Supabase Storage • ' : ' Automatyczna optymalizacja • '}
+            Max 50MB
           </p>
           
           <input
@@ -202,7 +270,7 @@ const ProductImageManager = ({
               {uploading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Przetwarzanie...
+                  {useSupabaseStorage ? 'Przesyłanie do Storage...' : 'Przetwarzanie...'}
                 </>
               ) : (
                 <>
@@ -219,6 +287,7 @@ const ProductImageManager = ({
         <div className="space-y-4">
           <h4 className="font-semibold text-stakerpol-navy">
             Podgląd zdjęć ({previews.length}/{maxImages})
+            {useSupabaseStorage && <span className="text-sm text-green-600 ml-2">(Supabase Storage)</span>}
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
