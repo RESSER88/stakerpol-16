@@ -6,10 +6,91 @@ import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Product } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 const Admin = () => {
   const { user, loading, isAdmin, signOut } = useSupabaseAuth();
   const supabaseHook = useSupabaseProducts();
+  const { toast } = useToast();
+
+  // State management for ProductManager
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+
+  const defaultNewProduct: Product = {
+    id: '',
+    model: '',
+    image: '',
+    images: [],
+    shortDescription: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    specs: {
+      productionYear: '',
+      mastLiftingCapacity: '',
+      preliminaryLiftingCapacity: '',
+      workingHours: '',
+      liftHeight: '',
+      minHeight: '',
+      preliminaryLifting: '',
+      battery: '',
+      condition: '',
+      serialNumber: '',
+      driveType: '',
+      mast: '',
+      freeStroke: '',
+      dimensions: '',
+      wheels: '',
+      operatorPlatform: '',
+      additionalOptions: '',
+      additionalDescription: '',
+      capacity: '',
+      charger: ''
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setSelectedProduct(product);
+    setProductImages(product.images || [product.image].filter(Boolean));
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleAdd = () => {
+    setSelectedProduct(null);
+    setProductImages([]);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCopy = (product: Product) => {
+    const timestamp = new Date().toISOString();
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const copiedProduct = {
+      ...product,
+      id: uniqueId,
+      model: `${product.model} (kopia)`,
+      specs: {
+        ...product.specs,
+        serialNumber: product.specs.serialNumber ? `${product.specs.serialNumber}-COPY` : `COPY-${Date.now()}`
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+    
+    setSelectedProduct(copiedProduct);
+    setProductImages(product.images || [product.image].filter(Boolean));
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (product: Product) => {
+    if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych?`)) {
+      supabaseHook.deleteProduct(product.id);
+    }
+  };
 
   if (loading) {
     return (
@@ -57,9 +138,24 @@ const Admin = () => {
     await signOut();
   };
 
-  // Adapter dla ProductManager - mapowanie funkcji Supabase na oczekiwany interfejs
+  // Props for ProductManager
   const productManagerProps = {
+    // State
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    selectedProduct,
+    productImages,
+    setProductImages,
+    viewMode,
+    setViewMode,
     products: supabaseHook.products,
+    defaultNewProduct,
+    
+    // Actions
+    handleEdit,
+    handleAdd,
+    handleCopy,
+    handleDelete,
     addProduct: (product: any) => {
       const images = product.images || [];
       supabaseHook.addProduct(product, images);
@@ -67,11 +163,6 @@ const Admin = () => {
     updateProduct: (product: any) => {
       const images = product.images || [];
       supabaseHook.updateProduct(product, images);
-    },
-    handleDelete: (product: any) => {
-      if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych?`)) {
-        supabaseHook.deleteProduct(product.id);
-      }
     }
   };
 
