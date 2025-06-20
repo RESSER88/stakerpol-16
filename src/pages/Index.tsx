@@ -5,16 +5,17 @@ import Layout from '@/components/layout/Layout';
 import CallToAction from '@/components/ui/CallToAction';
 import ProductCard from '@/components/ui/ProductCard';
 import WhyChooseUs from '@/components/ui/WhyChooseUs';
-import { useProductStore } from '@/stores/productStore';
+import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import { getRandomItems } from '@/utils/randomUtils';
 import { useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
-  const { products } = useProductStore();
+  const { products, isLoading } = usePublicSupabaseProducts();
 
   // Get 4 random products on each page load
   const featuredProducts = useMemo(() => {
@@ -88,13 +89,24 @@ const Index = () => {
           <p className="text-center text-gray-600 mb-8">
             {t('featuredProductsSubtitle')}
           </p>
-          <div className="product-grid-desktop mt-8">
-            {featuredProducts.map((product, index) => (
-              <div key={product.id} style={{ animationDelay: `${index * 100}ms` }}>
-                <ProductCard product={product} />
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+                <p className="text-muted-foreground">Ładowanie produktów...</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="product-grid-desktop mt-8">
+              {featuredProducts.map((product, index) => (
+                <div key={product.id} style={{ animationDelay: `${index * 100}ms` }}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          )}
+          
           <div className="text-center mt-12">
             <Button 
               variant="outline" 

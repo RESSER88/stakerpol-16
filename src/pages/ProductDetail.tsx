@@ -4,18 +4,19 @@ import { useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
-import { useProductStore } from '@/stores/productStore';
+import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import CallToAction from '@/components/ui/CallToAction';
 import ProductImage from '@/components/products/ProductImage';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductHeader from '@/components/products/ProductHeader';
 import RelatedProducts from '@/components/products/RelatedProducts';
+import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { language } = useLanguage();
   const t = useTranslation(language);
-  const { products } = useProductStore();
+  const { products, isLoading } = usePublicSupabaseProducts();
   
   const product = products.find((p) => p.id === id);
   
@@ -23,6 +24,21 @@ const ProductDetail = () => {
     // Scroll to top when component mounts or when ID changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container-custom py-12">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+              <p className="text-muted-foreground">Ładowanie produktu...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!product) {
     return (

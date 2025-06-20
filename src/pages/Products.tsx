@@ -4,14 +4,14 @@ import ProductCard from '@/components/ui/ProductCard';
 import CallToAction from '@/components/ui/CallToAction';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
-import { useProductStore } from '@/stores/productStore';
+import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { Link } from 'react-router-dom';
-import { Shield } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
 
 const Products = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
-  const { products } = useProductStore();
+  const { products, isLoading } = usePublicSupabaseProducts();
 
   const getPageDescription = () => {
     switch (language) {
@@ -27,6 +27,23 @@ const Products = () => {
         return 'Oferujemy szeroki wybór wózków widłowych BT Toyota, idealnie dopasowanych do różnych zastosowań i potrzeb.';
     }
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <section className="bg-gradient-to-b from-stakerpol-lightgray to-white py-12">
+          <div className="container-custom">
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+                <p className="text-muted-foreground">Ładowanie produktów...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
