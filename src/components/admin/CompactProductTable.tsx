@@ -12,25 +12,25 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileImage, Search, Copy, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { Download, FileImage, Search, Copy, Pencil, Trash2 } from 'lucide-react';
 import { Product } from '@/types';
-import { useProductStore } from '@/stores/productStore';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import { useToast } from '@/hooks/use-toast';
 import { measurePerformance } from '@/utils/performance';
 
 interface CompactProductTableProps {
+  products: Product[];
   onEdit: (product: Product) => void;
   onCopy: (product: Product) => void;
+  onDelete: (product: Product) => void;
 }
 
-const CompactProductTable = ({ onEdit, onCopy }: CompactProductTableProps) => {
+const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProductTableProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const t = useTranslation(language);
   const { toast } = useToast();
-  const { products, deleteProduct } = useProductStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredProducts = useMemo(() => {
@@ -43,20 +43,6 @@ const CompactProductTable = ({ onEdit, onCopy }: CompactProductTableProps) => {
       product.specs.productionYear?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [products, searchTerm]);
-
-  const handleDelete = (product: Product) => {
-    if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model}?`)) {
-      deleteProduct(product.id);
-      toast({
-        title: "Produkt usunięty",
-        description: `Pomyślnie usunięto produkt ${product.model}`
-      });
-    }
-  };
-
-  const handlePreviewClick = (productId: string) => {
-    window.open(`/products/${productId}`, '_blank');
-  };
 
   const handleModelClick = (productId: string) => {
     navigate(`/products/${productId}`);
@@ -319,15 +305,6 @@ const CompactProductTable = ({ onEdit, onCopy }: CompactProductTableProps) => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handlePreviewClick(product.id)}
-                        title={t('viewProductDetails')}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -349,7 +326,7 @@ const CompactProductTable = ({ onEdit, onCopy }: CompactProductTableProps) => {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleDelete(product)}
+                        onClick={() => onDelete(product)}
                         className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
                         title={t('deleteProduct')}
                       >

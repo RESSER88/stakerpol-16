@@ -1,8 +1,7 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Grid, Table as TableIcon, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, RefreshCw } from 'lucide-react';
 import ProductList from './ProductList';
 import ProductDetailsModal from './ProductDetailsModal';
 import { Product } from '@/types';
@@ -14,8 +13,6 @@ interface ProductManagerProps {
   selectedProduct: Product | null;
   productImages: string[];
   setProductImages: (images: string[]) => void;
-  viewMode: 'grid' | 'table';
-  setViewMode: (mode: 'grid' | 'table') => void;
   products: Product[];
   defaultNewProduct: Product;
   
@@ -24,8 +21,8 @@ interface ProductManagerProps {
   handleAdd: () => void;
   handleCopy: (product: Product) => void;
   handleDelete: (product: Product) => void;
-  addProduct: (product: Product) => void;
-  updateProduct: (product: Product) => void;
+  addProduct: (product: Product, images: string[]) => void;
+  updateProduct: (product: Product, images: string[]) => void;
 }
 
 const ProductManager = ({
@@ -34,8 +31,6 @@ const ProductManager = ({
   selectedProduct,
   productImages,
   setProductImages,
-  viewMode,
-  setViewMode,
   products,
   defaultNewProduct,
   handleEdit,
@@ -45,83 +40,39 @@ const ProductManager = ({
   addProduct,
   updateProduct
 }: ProductManagerProps) => {
-  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleSave = (product: any, images: string[]) => {
-    console.log('=== HANDLE SAVE START ===');
-    console.log('Selected product:', selectedProduct);
-    console.log('Product to save:', product);
-    console.log('Images:', images);
-    
-    const productToSave = {
-      ...product,
-      images: images,
-      image: images[0] || '',
-      updatedAt: new Date().toISOString()
-    };
-    
-    try {
-      // Improved logic to determine if this is editing an existing product
-      const isEditingExisting = selectedProduct && 
-        selectedProduct.id && 
-        selectedProduct.id !== '' &&
-        !selectedProduct.model.includes('(kopia)') &&
-        products.some(p => p.id === selectedProduct.id);
-      
-      console.log('Is editing existing?', isEditingExisting);
-      console.log('Selected product ID:', selectedProduct?.id);
-      console.log('Product exists in list:', selectedProduct ? products.some(p => p.id === selectedProduct.id) : false);
-      
-      if (isEditingExisting) {
-        // Editing existing product
-        console.log('UPDATING existing product with ID:', selectedProduct.id);
-        updateProduct(productToSave);
-        toast({
-          title: "Aktualizowanie produktu...",
-          description: `Zapisywanie zmian w produkcie ${productToSave.model}. Zmiany będą widoczne w ciągu kilku sekund.`,
-          duration: 4000
-        });
-      } else {
-        // New product or copy
-        console.log('ADDING new product');
-        const newProduct = {
-          ...productToSave,
-          id: selectedProduct?.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          createdAt: new Date().toISOString()
-        };
-        addProduct(newProduct);
-        toast({
-          title: "Dodawanie produktu...",
-          description: `Zapisywanie nowego produktu ${newProduct.model}. Produkt będzie widoczny w ciągu kilku sekund.`,
-          duration: 4000
-        });
-      }
-      
-      setIsEditDialogOpen(false);
-      
-      // Force refresh after 3 seconds to ensure data is synchronized
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-      
-    } catch (error) {
-      console.error('Error in handleSave:', error);
-      toast({
-        title: "Błąd",
-        description: "Wystąpił błąd podczas zapisywania produktu",
-        variant: "destructive"
-      });
-    }
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Trigger a data refresh by temporarily setting a flag
+    setTimeout(() => {
+      setRefreshing(false);
+      window.location.reload();
+    }, 500);
   };
 
-  const handleRefresh = () => {
-    toast({
-      title: "Odświeżanie...",
-      description: "Pobieranie najnowszych danych z bazy",
-      duration: 2000
-    });
-    // Force page reload to ensure fresh data
-    window.location.reload();
+  const handleSave = (product: Product, images: string[]) => {
+    console.log('=== PRODUCT MANAGER SAVE ===');
+    console.log('Selected product for save decision:', selectedProduct);
+    console.log('Product to save:', product);
+    
+    // Check if this is editing an existing product vs adding new/copy
+    const isEditingExisting = selectedProduct && 
+      selectedProduct.id && 
+      !selectedProduct.model.includes('(kopia)') &&
+      products.some(p => p.id === selectedProduct.id);
+    
+    console.log('Is editing existing in ProductManager:', isEditingExisting);
+    
+    if (isEditingExisting) {
+      console.log('Calling updateProduct with ID:', product.id);
+      updateProduct(product, images);
+    } else {
+      console.log('Calling addProduct for new/copied product');
+      addProduct(product, images);
+    }
+    
+    setIsEditDialogOpen(false);
   };
 
   return (
@@ -130,60 +81,38 @@ const ProductManager = ({
         <div>
           <h2 className="text-2xl font-bold text-stakerpol-navy">Zarządzanie Produktami</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Łącznie opublikowanych produktów: <span className="font-semibold text-stakerpol-orange">{products.length}</span>
+            Zarządzaj produktami w katalogu ({products.length} produktów)
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs text-blue-600">
-              ℹ️ Zmiany będą widoczne na stronie publicznej w ciągu 3-10 sekund
-            </p>
-          </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
+            onClick={handleRefresh}
             variant="outline"
             size="sm"
-            onClick={handleRefresh}
-            className="h-8"
-            title="Odśwież dane z bazy"
+            disabled={refreshing}
+            className="flex-1 sm:flex-initial"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Odśwież
           </Button>
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="h-8"
-            >
-              <Grid className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Kafelki</span>
-            </Button>
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className="h-8"
-            >
-              <TableIcon className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Tabela</span>
-            </Button>
-          </div>
-          <Button onClick={handleAdd} className="cta-button">
-            <Plus className="mr-2 h-4 w-4" /> 
-            <span className="hidden sm:inline">Dodaj Produkt</span>
-            <span className="sm:hidden">Dodaj</span>
+          <Button 
+            onClick={handleAdd}
+            className="cta-button flex-1 sm:flex-initial"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Dodaj Produkt
           </Button>
         </div>
       </div>
 
       <ProductList
         products={products}
-        viewMode={viewMode}
         onEdit={handleEdit}
         onCopy={handleCopy}
         onDelete={handleDelete}
       />
-      
+
       <ProductDetailsModal
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}

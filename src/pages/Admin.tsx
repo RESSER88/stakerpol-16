@@ -20,7 +20,6 @@ const Admin = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
   // Monitor connection status
   useEffect(() => {
@@ -180,8 +179,6 @@ const Admin = () => {
     selectedProduct,
     productImages,
     setProductImages,
-    viewMode,
-    setViewMode,
     products: supabaseHook.products,
     defaultNewProduct,
     
@@ -190,12 +187,10 @@ const Admin = () => {
     handleAdd,
     handleCopy,
     handleDelete,
-    addProduct: (product: any) => {
-      const images = product.images || [];
+    addProduct: (product: any, images: string[]) => {
       supabaseHook.addProduct(product, images);
     },
-    updateProduct: (product: any) => {
-      const images = product.images || [];
+    updateProduct: (product: any, images: string[]) => {
       supabaseHook.updateProduct(product, images);
     }
   };
