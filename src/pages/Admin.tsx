@@ -1,13 +1,15 @@
 
 import Layout from '@/components/layout/Layout';
 import AdminLogin from '@/components/admin/AdminLogin';
-import ProductManagerWithSupabase from '@/components/admin/ProductManagerWithSupabase';
+import ProductManager from '@/components/admin/ProductManager';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
 const Admin = () => {
   const { user, loading, isAdmin, signOut } = useSupabaseAuth();
+  const supabaseHook = useSupabaseProducts();
 
   if (loading) {
     return (
@@ -55,6 +57,24 @@ const Admin = () => {
     await signOut();
   };
 
+  // Adapter dla ProductManager - mapowanie funkcji Supabase na oczekiwany interfejs
+  const productManagerProps = {
+    products: supabaseHook.products,
+    addProduct: (product: any) => {
+      const images = product.images || [];
+      supabaseHook.addProduct(product, images);
+    },
+    updateProduct: (product: any) => {
+      const images = product.images || [];
+      supabaseHook.updateProduct(product, images);
+    },
+    handleDelete: (product: any) => {
+      if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych?`)) {
+        supabaseHook.deleteProduct(product.id);
+      }
+    }
+  };
+
   return (
     <Layout>
       <div className="container-custom py-8">
@@ -63,6 +83,9 @@ const Admin = () => {
             <h1 className="text-3xl font-bold text-stakerpol-navy">Panel Administracyjny</h1>
             <p className="text-sm text-muted-foreground">
               Zalogowany jako: <span className="font-semibold">{user.email}</span>
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              ✓ Połączono z bazą danych Supabase ({supabaseHook.products.length} produktów)
             </p>
           </div>
           <Button
@@ -75,7 +98,14 @@ const Admin = () => {
           </Button>
         </div>
         
-        <ProductManagerWithSupabase />
+        <ProductManager {...productManagerProps} />
+        
+        {supabaseHook.isLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stakerpol-orange mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Ładowanie produktów z bazy danych...</p>
+          </div>
+        )}
       </div>
     </Layout>
   );
