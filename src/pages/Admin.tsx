@@ -5,8 +5,8 @@ import ProductManager from '@/components/admin/ProductManager';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { Button } from '@/components/ui/button';
-import { LogOut, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { LogOut, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,12 +14,24 @@ const Admin = () => {
   const { user, loading, isAdmin, signOut } = useSupabaseAuth();
   const supabaseHook = useSupabaseProducts();
   const { toast } = useToast();
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'syncing'>('connected');
 
   // State management for ProductManager
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+
+  // Monitor connection status
+  useEffect(() => {
+    if (supabaseHook.isAddingProduct || supabaseHook.isUpdatingProduct || supabaseHook.isDeletingProduct) {
+      setConnectionStatus('syncing');
+    } else if (supabaseHook.error) {
+      setConnectionStatus('disconnected');
+    } else {
+      setConnectionStatus('connected');
+    }
+  }, [supabaseHook.isAddingProduct, supabaseHook.isUpdatingProduct, supabaseHook.isDeletingProduct, supabaseHook.error]);
 
   const defaultNewProduct: Product = {
     id: '',
@@ -54,12 +66,14 @@ const Admin = () => {
   };
 
   const handleEdit = (product: Product) => {
+    console.log('Editing product:', product);
     setSelectedProduct(product);
     setProductImages(product.images || [product.image].filter(Boolean));
     setIsEditDialogOpen(true);
   };
   
   const handleAdd = () => {
+    console.log('Adding new product');
     setSelectedProduct(null);
     setProductImages([]);
     setIsEditDialogOpen(true);
@@ -67,7 +81,7 @@ const Admin = () => {
 
   const handleCopy = (product: Product) => {
     const timestamp = new Date().toISOString();
-    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const uniqueId = `copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     const copiedProduct = {
       ...product,
@@ -81,14 +95,21 @@ const Admin = () => {
       updatedAt: timestamp
     };
     
+    console.log('Copying product:', copiedProduct);
     setSelectedProduct(copiedProduct);
     setProductImages(product.images || [product.image].filter(Boolean));
     setIsEditDialogOpen(true);
   };
 
   const handleDelete = (product: Product) => {
-    if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych?`)) {
+    if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych? Ta operacja jest nieodwracalna.`)) {
+      console.log('Deleting product:', product.id);
       supabaseHook.deleteProduct(product.id);
+      toast({
+        title: "Usuwanie produktu...",
+        description: `Produkt ${product.model} zostanie usunięty z bazy danych w ciągu kilku sekund.`,
+        duration: 4000
+      });
     }
   };
 
@@ -98,7 +119,7 @@ const Admin = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stakerpol-orange mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Ładowanie...</p>
+            <p className="text-muted-foreground">Ładowanie panelu administracyjnego...</p>
           </div>
         </div>
       </Layout>
@@ -135,7 +156,20 @@ const Admin = () => {
   }
 
   const handleLogout = async () => {
-    await signOut();
+    try {
+      await signOut();
+      toast({
+        title: "Wylogowano",
+        description: "Zostałeś pomyślnie wylogowany z panelu administracyjnego",
+        duration: 3000
+      });
+    } catch (error) {
+      toast({
+        title: "Błąd wylogowania",
+        description: "Wystąpił problem podczas wylogowywania",
+        variant: "destructive"
+      });
+    }
   };
 
   // Props for ProductManager
@@ -166,6 +200,28 @@ const Admin = () => {
     }
   };
 
+  const getConnectionIcon = () => {
+    switch (connectionStatus) {
+      case 'syncing':
+        return <Loader2 className="h-3 w-3 animate-spin text-blue-600" />;
+      case 'disconnected':
+        return <WifiOff className="h-3 w-3 text-red-600" />;
+      default:
+        return <Wifi className="h-3 w-3 text-green-600" />;
+    }
+  };
+
+  const getConnectionText = () => {
+    switch (connectionStatus) {
+      case 'syncing':
+        return 'Synchronizacja w toku...';
+      case 'disconnected':
+        return 'Brak połączenia z bazą danych';
+      default:
+        return `Połączono z bazą danych (${supabaseHook.products.length} produktów)`;
+    }
+  };
+
   return (
     <Layout>
       <div className="container-custom py-8">
@@ -175,17 +231,17 @@ const Admin = () => {
             <p className="text-sm text-muted-foreground">
               Zalogowany jako: <span className="font-semibold">{user.email}</span>
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-xs text-green-600">
-                ✓ Połączono z bazą danych Supabase ({supabaseHook.products.length} produktów)
+            <div className="flex items-center gap-2 mt-2">
+              {getConnectionIcon()}
+              <p className="text-xs" style={{ color: connectionStatus === 'disconnected' ? '#dc2626' : connectionStatus === 'syncing' ? '#2563eb' : '#16a34a' }}>
+                {getConnectionText()}
               </p>
-              {supabaseHook.isLoading && (
-                <div className="flex items-center gap-1 text-xs text-blue-600">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Synchronizacja...
-                </div>
-              )}
             </div>
+            {connectionStatus === 'connected' && (
+              <p className="text-xs text-blue-600 mt-1">
+                ⚡ Zmiany będą widoczne na stronie publicznej w czasie rzeczywistym
+              </p>
+            )}
           </div>
           <Button
             onClick={handleLogout}
@@ -200,15 +256,18 @@ const Admin = () => {
         <ProductManager {...productManagerProps} />
         
         {(supabaseHook.isAddingProduct || supabaseHook.isUpdatingProduct || supabaseHook.isDeletingProduct) && (
-          <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border">
+          <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border border-blue-200">
             <div className="flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin text-stakerpol-orange" />
               <span>
-                {supabaseHook.isAddingProduct && 'Dodawanie produktu...'}
-                {supabaseHook.isUpdatingProduct && 'Aktualizowanie produktu...'}
-                {supabaseHook.isDeletingProduct && 'Usuwanie produktu...'}
+                {supabaseHook.isAddingProduct && 'Dodawanie produktu do bazy danych...'}
+                {supabaseHook.isUpdatingProduct && 'Aktualizowanie produktu w bazie danych...'}
+                {supabaseHook.isDeletingProduct && 'Usuwanie produktu z bazy danych...'}
               </span>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Zmiany będą widoczne na stronie w ciągu kilku sekund
+            </p>
           </div>
         )}
       </div>

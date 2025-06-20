@@ -16,7 +16,7 @@ export const useSupabaseProducts = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Pobieranie wszystkich produktów z realtime synchronizacją
+  // Enhanced product fetching with better error handling
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['supabase-products'],
     queryFn: async () => {
@@ -54,18 +54,18 @@ export const useSupabaseProducts = () => {
       
       return mappedProducts;
     },
-    retry: 2,
-    staleTime: 1000, // Zmniejszone cache dla natychmiastowych aktualizacji
-    gcTime: 2 * 60 * 1000, // Skrócony czas w pamięci
+    retry: 3,
+    staleTime: 5 * 1000, // 5 seconds for admin panel
+    gcTime: 10 * 60 * 1000, // 10 minutes in memory
+    refetchOnWindowFocus: true,
   });
 
-  // Realtime subscription dla synchronizacji danych
+  // Enhanced realtime subscription
   useEffect(() => {
-    console.log('Setting up realtime subscriptions...');
+    console.log('Setting up admin realtime subscriptions...');
     
-    // Subscription dla produktów
     const productsChannel = supabase
-      .channel('products-changes')
+      .channel('admin-products-changes')
       .on(
         'postgres_changes',
         {
@@ -74,16 +74,15 @@ export const useSupabaseProducts = () => {
           table: 'products'
         },
         (payload) => {
-          console.log('Products realtime update:', payload);
-          // Invalidate queries to force refresh
+          console.log('Admin products realtime update:', payload);
           queryClient.invalidateQueries({ queryKey: ['supabase-products'] });
+          queryClient.invalidateQueries({ queryKey: ['public-products'] });
         }
       )
       .subscribe();
 
-    // Subscription dla zdjęć produktów
     const imagesChannel = supabase
-      .channel('product-images-changes')
+      .channel('admin-product-images-changes')
       .on(
         'postgres_changes',
         {
@@ -92,30 +91,35 @@ export const useSupabaseProducts = () => {
           table: 'product_images'
         },
         (payload) => {
-          console.log('Product images realtime update:', payload);
+          console.log('Admin product images realtime update:', payload);
           queryClient.invalidateQueries({ queryKey: ['supabase-products'] });
+          queryClient.invalidateQueries({ queryKey: ['public-products'] });
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscriptions...');
+      console.log('Cleaning up admin realtime subscriptions...');
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(imagesChannel);
     };
   }, [queryClient]);
 
-  // Dodawanie produktu z ulepszonym debugowaniem
+  // Enhanced add product mutation
   const addProductMutation = useMutation({
     mutationFn: async ({ product, images }: { product: any; images: string[] }) => {
-      console.log('=== ADDING PRODUCT ===');
+      console.log('=== ADDING PRODUCT TO DATABASE ===');
       console.log('Product data:', product);
       console.log('Images:', images);
       const startTime = performance.now();
       
-      // Validate required fields
-      if (!product.model || !product.specs.serialNumber) {
-        throw new Error('Model i numer seryjny są wymagane');
+      // Enhanced validation
+      if (!product.model?.trim()) {
+        throw new Error('Model produktu jest wymagany');
+      }
+      
+      if (!product.specs?.serialNumber?.trim()) {
+        throw new Error('Numer seryjny jest wymagany');
       }
       
       const supabaseProduct = mapProductToSupabaseInsert(product);
@@ -129,12 +133,12 @@ export const useSupabaseProducts = () => {
 
       if (productError) {
         console.error('Error adding product:', productError);
-        throw productError;
+        throw new Error(`Błąd dodawania produktu: ${productError.message}`);
       }
 
       console.log('Product added successfully:', newProduct);
 
-      // Dodaj zdjęcia jeśli są
+      // Add images with better error handling
       if (images.length > 0 && newProduct) {
         const imageInserts = images.map((imageUrl, index) => ({
           product_id: newProduct.id,
@@ -150,6 +154,7 @@ export const useSupabaseProducts = () => {
 
         if (imagesError) {
           console.error('Error adding images:', imagesError);
+          // Don't throw here, product was created successfully
         } else {
           console.log('Images added successfully');
         }
@@ -161,36 +166,42 @@ export const useSupabaseProducts = () => {
       return newProduct;
     },
     onSuccess: () => {
-      // Force immediate refresh
+      // Force immediate refresh of both admin and public queries
       queryClient.invalidateQueries({ queryKey: ['supabase-products'] });
+      queryClient.invalidateQueries({ queryKey: ['public-products'] });
+      
       toast({
-        title: "Produkt dodany",
-        description: "Produkt został pomyślnie dodany do bazy danych. Zmiany będą widoczne na stronie w ciągu kilku sekund.",
+        title: "✅ Produkt dodany pomyślnie",
+        description: "Nowy produkt został zapisany w bazie danych i będzie widoczny na stronie w ciągu kilku sekund.",
         duration: 5000
       });
     },
     onError: (error: any) => {
       console.error('Add product error:', error);
       toast({
-        title: "Błąd",
-        description: `Nie udało się dodać produktu: ${error.message}`,
-        variant: "destructive"
+        title: "❌ Błąd dodawania produktu",
+        description: error.message || "Nie udało się dodać produktu do bazy danych",
+        variant: "destructive",
+        duration: 7000
       });
     }
   });
 
-  // Aktualizacja produktu z ulepszonym debugowaniem
+  // Enhanced update product mutation
   const updateProductMutation = useMutation({
     mutationFn: async ({ product, images }: { product: any; images: string[] }) => {
-      console.log('=== UPDATING PRODUCT ===');
+      console.log('=== UPDATING PRODUCT IN DATABASE ===');
       console.log('Product ID:', product.id);
       console.log('Product data:', product);
       console.log('Images:', images);
       const startTime = performance.now();
       
-      // Validate product ID exists
       if (!product.id) {
         throw new Error('ID produktu jest wymagane do aktualizacji');
+      }
+      
+      if (!product.model?.trim()) {
+        throw new Error('Model produktu jest wymagany');
       }
       
       const supabaseProduct = mapProductToSupabaseUpdate(product);
@@ -205,7 +216,7 @@ export const useSupabaseProducts = () => {
 
       if (productError) {
         console.error('Error updating product:', productError);
-        throw productError;
+        throw new Error(`Błąd aktualizacji produktu: ${productError.message}`);
       }
 
       console.log('Product updated successfully:', updatedProduct);
@@ -246,27 +257,31 @@ export const useSupabaseProducts = () => {
       return updatedProduct;
     },
     onSuccess: () => {
+      // Force immediate refresh of both admin and public queries
       queryClient.invalidateQueries({ queryKey: ['supabase-products'] });
+      queryClient.invalidateQueries({ queryKey: ['public-products'] });
+      
       toast({
-        title: "Produkt zaktualizowany",
-        description: "Produkt został pomyślnie zaktualizowany. Zmiany będą widoczne na stronie w ciągu kilku sekund.",
+        title: "✅ Produkt zaktualizowany pomyślnie",
+        description: "Zmiany zostały zapisane w bazie danych i będą widoczne na stronie w ciągu kilku sekund.",
         duration: 5000
       });
     },
     onError: (error: any) => {
       console.error('Update product error:', error);
       toast({
-        title: "Błąd",
-        description: `Nie udało się zaktualizować produktu: ${error.message}`,
-        variant: "destructive"
+        title: "❌ Błąd aktualizacji produktu",
+        description: error.message || "Nie udało się zaktualizować produktu",
+        variant: "destructive",
+        duration: 7000
       });
     }
   });
 
-  // Usuwanie produktu z ulepszonym debugowaniem
+  // Enhanced delete product mutation
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: string) => {
-      console.log('=== DELETING PRODUCT ===');
+      console.log('=== DELETING PRODUCT FROM DATABASE ===');
       console.log('Product ID:', productId);
       const startTime = performance.now();
       
@@ -274,6 +289,17 @@ export const useSupabaseProducts = () => {
         throw new Error('ID produktu jest wymagane do usunięcia');
       }
       
+      // First delete images (foreign key constraint)
+      const { error: imagesError } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('product_id', productId);
+
+      if (imagesError) {
+        console.error('Error deleting product images:', imagesError);
+      }
+      
+      // Then delete product
       const { error } = await supabase
         .from('products')
         .delete()
@@ -281,26 +307,30 @@ export const useSupabaseProducts = () => {
 
       if (error) {
         console.error('Error deleting product:', error);
-        throw error;
+        throw new Error(`Błąd usuwania produktu: ${error.message}`);
       }
 
       const endTime = performance.now();
       console.log(`=== PRODUCT DELETED in ${(endTime - startTime).toFixed(2)}ms ===`);
     },
     onSuccess: () => {
+      // Force immediate refresh of both admin and public queries
       queryClient.invalidateQueries({ queryKey: ['supabase-products'] });
+      queryClient.invalidateQueries({ queryKey: ['public-products'] });
+      
       toast({
-        title: "Produkt usunięty",
-        description: "Produkt został pomyślnie usunięty z bazy danych. Zmiany będą widoczne na stronie w ciągu kilku sekund.",
+        title: "✅ Produkt usunięty pomyślnie",
+        description: "Produkt został usunięty z bazy danych i zniknie ze strony w ciągu kilku sekund.",
         duration: 5000
       });
     },
     onError: (error: any) => {
       console.error('Delete product error:', error);
       toast({
-        title: "Błąd",
-        description: `Nie udało się usunąć produktu: ${error.message}`,
-        variant: "destructive"
+        title: "❌ Błąd usuwania produktu",
+        description: error.message || "Nie udało się usunąć produktu",
+        variant: "destructive",
+        duration: 7000
       });
     }
   });

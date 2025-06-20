@@ -10,7 +10,7 @@ import {
 } from '@/types/supabase';
 
 export const usePublicSupabaseProducts = () => {
-  // Fetch products with optimized caching for public pages
+  // Fetch products with aggressive caching strategy for public pages
   const { data: products = [], isLoading, error, refetch } = useQuery({
     queryKey: ['public-products'],
     queryFn: async () => {
@@ -48,16 +48,18 @@ export const usePublicSupabaseProducts = () => {
       
       return mappedProducts;
     },
-    staleTime: 30 * 1000, // 30 seconds cache for public pages
-    gcTime: 5 * 60 * 1000, // 5 minutes in memory
-    retry: 2,
+    staleTime: 10 * 1000, // 10 seconds cache for faster sync with admin changes
+    gcTime: 60 * 1000, // 1 minute in memory for better performance
+    retry: 3,
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchInterval: 15 * 1000, // Auto-refetch every 15 seconds for real-time sync
   });
 
-  // Realtime subscription for automatic updates
+  // Enhanced realtime subscription for immediate sync with admin panel
   useEffect(() => {
-    console.log('Setting up realtime subscriptions for public pages...');
+    console.log('Setting up enhanced realtime subscriptions for public pages...');
     
-    // Products subscription
+    // Products subscription with immediate refetch
     const productsChannel = supabase
       .channel('public-products-changes')
       .on(
@@ -68,13 +70,14 @@ export const usePublicSupabaseProducts = () => {
           table: 'products'
         },
         (payload) => {
-          console.log('Public products realtime update:', payload);
+          console.log('Public products realtime update detected:', payload);
+          // Force immediate refetch for instant sync
           refetch();
         }
       )
       .subscribe();
 
-    // Images subscription
+    // Images subscription with immediate refetch
     const imagesChannel = supabase
       .channel('public-product-images-changes')
       .on(
@@ -85,22 +88,31 @@ export const usePublicSupabaseProducts = () => {
           table: 'product_images'
         },
         (payload) => {
-          console.log('Public product images realtime update:', payload);
+          console.log('Public product images realtime update detected:', payload);
+          // Force immediate refetch for instant sync
           refetch();
         }
       )
       .subscribe();
 
+    // Additional periodic sync to ensure data consistency
+    const syncInterval = setInterval(() => {
+      console.log('Performing periodic sync check...');
+      refetch();
+    }, 30 * 1000); // Every 30 seconds
+
     return () => {
-      console.log('Cleaning up realtime subscriptions for public pages...');
+      console.log('Cleaning up realtime subscriptions and sync interval...');
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(imagesChannel);
+      clearInterval(syncInterval);
     };
   }, [refetch]);
 
   return {
     products,
     isLoading,
-    error
+    error,
+    refetch // Expose refetch for manual sync
   };
 };

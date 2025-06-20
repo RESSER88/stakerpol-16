@@ -48,7 +48,7 @@ const ProductManager = ({
   const { toast } = useToast();
 
   const handleSave = (product: any, images: string[]) => {
-    console.log('=== HANDLE SAVE ===');
+    console.log('=== HANDLE SAVE START ===');
     console.log('Selected product:', selectedProduct);
     console.log('Product to save:', product);
     console.log('Images:', images);
@@ -61,24 +61,28 @@ const ProductManager = ({
     };
     
     try {
-      // Sprawdzamy czy to edycja istniejącego produktu
+      // Improved logic to determine if this is editing an existing product
       const isEditingExisting = selectedProduct && 
         selectedProduct.id && 
+        selectedProduct.id !== '' &&
+        !selectedProduct.model.includes('(kopia)') &&
         products.some(p => p.id === selectedProduct.id);
       
       console.log('Is editing existing?', isEditingExisting);
+      console.log('Selected product ID:', selectedProduct?.id);
+      console.log('Product exists in list:', selectedProduct ? products.some(p => p.id === selectedProduct.id) : false);
       
       if (isEditingExisting) {
-        // Edycja istniejącego produktu
-        console.log('UPDATING existing product');
+        // Editing existing product
+        console.log('UPDATING existing product with ID:', selectedProduct.id);
         updateProduct(productToSave);
         toast({
           title: "Aktualizowanie produktu...",
-          description: `Zapisywanie zmian w produkcie ${productToSave.model}`,
-          duration: 3000
+          description: `Zapisywanie zmian w produkcie ${productToSave.model}. Zmiany będą widoczne w ciągu kilku sekund.`,
+          duration: 4000
         });
       } else {
-        // Nowy produkt lub kopia
+        // New product or copy
         console.log('ADDING new product');
         const newProduct = {
           ...productToSave,
@@ -88,12 +92,18 @@ const ProductManager = ({
         addProduct(newProduct);
         toast({
           title: "Dodawanie produktu...",
-          description: `Zapisywanie nowego produktu ${newProduct.model}`,
-          duration: 3000
+          description: `Zapisywanie nowego produktu ${newProduct.model}. Produkt będzie widoczny w ciągu kilku sekund.`,
+          duration: 4000
         });
       }
       
       setIsEditDialogOpen(false);
+      
+      // Force refresh after 3 seconds to ensure data is synchronized
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+      
     } catch (error) {
       console.error('Error in handleSave:', error);
       toast({
@@ -105,6 +115,11 @@ const ProductManager = ({
   };
 
   const handleRefresh = () => {
+    toast({
+      title: "Odświeżanie...",
+      description: "Pobieranie najnowszych danych z bazy",
+      duration: 2000
+    });
     // Force page reload to ensure fresh data
     window.location.reload();
   };
@@ -117,9 +132,11 @@ const ProductManager = ({
           <p className="text-sm text-muted-foreground mt-1">
             Łącznie opublikowanych produktów: <span className="font-semibold text-stakerpol-orange">{products.length}</span>
           </p>
-          <p className="text-xs text-blue-600 mt-1">
-            ℹ️ Zmiany mogą być widoczne na stronie po maksymalnie 10 sekundach
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-blue-600">
+              ℹ️ Zmiany będą widoczne na stronie publicznej w ciągu 3-10 sekund
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
@@ -127,7 +144,7 @@ const ProductManager = ({
             size="sm"
             onClick={handleRefresh}
             className="h-8"
-            title="Odśwież dane"
+            title="Odśwież dane z bazy"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>

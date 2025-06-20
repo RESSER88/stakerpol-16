@@ -8,10 +8,19 @@ export const useProductFormValidation = (products: Product[]) => {
   const checkSerialNumberUnique = (serialNumber: string, currentProductId?: string): boolean => {
     if (!serialNumber.trim()) return true;
     
-    return !products.some(product => 
+    const existingProduct = products.find(product => 
       product.specs.serialNumber?.toLowerCase() === serialNumber.toLowerCase() &&
       product.id !== currentProductId
     );
+    
+    console.log('Serial number validation:', {
+      serialNumber,
+      currentProductId,
+      existingProduct: existingProduct?.id,
+      isUnique: !existingProduct
+    });
+    
+    return !existingProduct;
   };
 
   const validateProduct = (product: Product, images: string[], selectedProductId?: string): boolean => {
@@ -37,7 +46,7 @@ export const useProductFormValidation = (products: Product[]) => {
     if (serialNumber && !checkSerialNumberUnique(serialNumber, selectedProductId)) {
       toast({
         title: "Błąd walidacji",
-        description: `Numer seryjny "${serialNumber}" już istnieje w bazie danych`,
+        description: `Numer seryjny "${serialNumber}" już istnieje w bazie danych dla innego produktu`,
         variant: "destructive"
       });
       return false;
