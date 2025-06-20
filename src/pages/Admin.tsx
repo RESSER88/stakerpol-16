@@ -1,54 +1,49 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/layout/Layout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProductManager from '@/components/admin/ProductManager';
 import AdminLogin from '@/components/admin/AdminLogin';
+import ProductManagerWithSupabase from '@/components/admin/ProductManagerWithSupabase';
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { toast } = useToast();
-  
-  const handleLogin = (password: string) => {
-    // W prawdziwym systemie powinieneś używać bezpiecznej metody uwierzytelniania
-    // To jest tylko proste demo dla wizualizacji
-    if (password === "Kacperek2024") {
-      setIsAuthenticated(true);
-      toast({
-        title: "Zalogowano pomyślnie",
-        description: "Witaj w panelu administracyjnym",
-      });
-    } else {
-      toast({
-        title: "Błąd logowania",
-        description: "Nieprawidłowe hasło",
-        variant: "destructive",
-      });
-    }
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('admin-authenticated') === 'true';
+  });
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('admin-authenticated', 'true');
   };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('admin-authenticated');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <AdminLogin onLogin={handleLogin} />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <section className="bg-white py-12">
-        <div className="container-custom">
-          <h1 className="text-3xl font-bold mb-6 text-stakerpol-navy">Panel Administracyjny</h1>
-          
-          {isAuthenticated ? (
-            <Tabs defaultValue="products" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="products">Zarządzanie Produktami</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="products">
-                <ProductManager />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <AdminLogin onLogin={handleLogin} />
-          )}
+      <div className="container-custom py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-stakerpol-navy">Panel Administracyjny</h1>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-muted-foreground hover:text-stakerpol-orange transition-colors"
+          >
+            Wyloguj
+          </button>
         </div>
-      </section>
+        
+        <ProductManagerWithSupabase />
+      </div>
     </Layout>
   );
 };

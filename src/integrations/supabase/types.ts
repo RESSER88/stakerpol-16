@@ -9,7 +9,122 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      product_images: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          image_url: string
+          product_id: string
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url: string
+          product_id: string
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          additional_options: string | null
+          battery: string | null
+          condition: string | null
+          created_at: string
+          detailed_description: string | null
+          dimensions: string | null
+          drive_type: string | null
+          foldable_platform: string | null
+          free_lift: number | null
+          id: string
+          image_url: string | null
+          initial_lift: string | null
+          lift_capacity_initial: number | null
+          lift_capacity_mast: number | null
+          lift_height: number | null
+          mast: string | null
+          min_height: number | null
+          name: string
+          production_year: number | null
+          serial_number: string
+          short_description: string | null
+          updated_at: string
+          wheels: string | null
+          working_hours: number | null
+        }
+        Insert: {
+          additional_options?: string | null
+          battery?: string | null
+          condition?: string | null
+          created_at?: string
+          detailed_description?: string | null
+          dimensions?: string | null
+          drive_type?: string | null
+          foldable_platform?: string | null
+          free_lift?: number | null
+          id?: string
+          image_url?: string | null
+          initial_lift?: string | null
+          lift_capacity_initial?: number | null
+          lift_capacity_mast?: number | null
+          lift_height?: number | null
+          mast?: string | null
+          min_height?: number | null
+          name: string
+          production_year?: number | null
+          serial_number: string
+          short_description?: string | null
+          updated_at?: string
+          wheels?: string | null
+          working_hours?: number | null
+        }
+        Update: {
+          additional_options?: string | null
+          battery?: string | null
+          condition?: string | null
+          created_at?: string
+          detailed_description?: string | null
+          dimensions?: string | null
+          drive_type?: string | null
+          foldable_platform?: string | null
+          free_lift?: number | null
+          id?: string
+          image_url?: string | null
+          initial_lift?: string | null
+          lift_capacity_initial?: number | null
+          lift_capacity_mast?: number | null
+          lift_height?: number | null
+          mast?: string | null
+          min_height?: number | null
+          name?: string
+          production_year?: number | null
+          serial_number?: string
+          short_description?: string | null
+          updated_at?: string
+          wheels?: string | null
+          working_hours?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
