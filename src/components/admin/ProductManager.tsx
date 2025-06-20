@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Grid, Table as TableIcon } from 'lucide-react';
+import { Plus, Grid, Table as TableIcon, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProductList from './ProductList';
 import ProductDetailsModal from './ProductDetailsModal';
@@ -48,52 +48,65 @@ const ProductManager = ({
   const { toast } = useToast();
 
   const handleSave = (product: any, images: string[]) => {
+    console.log('=== HANDLE SAVE ===');
+    console.log('Selected product:', selectedProduct);
+    console.log('Product to save:', product);
+    console.log('Images:', images);
+    
     const productToSave = {
       ...product,
       images: images,
-      image: images[0] || ''
+      image: images[0] || '',
+      updatedAt: new Date().toISOString()
     };
     
     try {
-      if (selectedProduct && selectedProduct.id) {
-        // Sprawdzamy czy to jest edycja istniejącego produktu (ma ID które już istnieje w products)
-        const existingProduct = products.find(p => p.id === selectedProduct.id);
-        if (existingProduct) {
-          updateProduct(productToSave);
-          toast({
-            title: "Produkt zaktualizowany",
-            description: `Pomyślnie zaktualizowano produkt ${productToSave.model}`
-          });
-        } else {
-          // To jest nowy produkt (kopia) - dodajemy jako nowy
-          addProduct(productToSave);
-          toast({
-            title: "Produkt dodany",
-            description: `Pomyślnie dodano nowy produkt ${productToSave.model}`
-          });
-        }
+      // Sprawdzamy czy to edycja istniejącego produktu
+      const isEditingExisting = selectedProduct && 
+        selectedProduct.id && 
+        products.some(p => p.id === selectedProduct.id);
+      
+      console.log('Is editing existing?', isEditingExisting);
+      
+      if (isEditingExisting) {
+        // Edycja istniejącego produktu
+        console.log('UPDATING existing product');
+        updateProduct(productToSave);
+        toast({
+          title: "Aktualizowanie produktu...",
+          description: `Zapisywanie zmian w produkcie ${productToSave.model}`,
+          duration: 3000
+        });
       } else {
-        // Nowy produkt - generujemy ID
+        // Nowy produkt lub kopia
+        console.log('ADDING new product');
         const newProduct = {
           ...productToSave,
-          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          id: selectedProduct?.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date().toISOString()
         };
         addProduct(newProduct);
         toast({
-          title: "Produkt dodany",
-          description: `Pomyślnie dodano nowy produkt ${newProduct.model}`
+          title: "Dodawanie produktu...",
+          description: `Zapisywanie nowego produktu ${newProduct.model}`,
+          duration: 3000
         });
       }
       
       setIsEditDialogOpen(false);
     } catch (error) {
+      console.error('Error in handleSave:', error);
       toast({
         title: "Błąd",
         description: "Wystąpił błąd podczas zapisywania produktu",
         variant: "destructive"
       });
-      console.error('Error saving product:', error);
     }
+  };
+
+  const handleRefresh = () => {
+    // Force page reload to ensure fresh data
+    window.location.reload();
   };
 
   return (
@@ -104,8 +117,20 @@ const ProductManager = ({
           <p className="text-sm text-muted-foreground mt-1">
             Łącznie opublikowanych produktów: <span className="font-semibold text-stakerpol-orange">{products.length}</span>
           </p>
+          <p className="text-xs text-blue-600 mt-1">
+            ℹ️ Zmiany mogą być widoczne na stronie po maksymalnie 10 sekundach
+          </p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            className="h-8"
+            title="Odśwież dane"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <div className="flex bg-gray-100 rounded-lg p-1">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}

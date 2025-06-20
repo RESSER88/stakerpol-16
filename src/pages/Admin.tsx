@@ -5,7 +5,7 @@ import ProductManager from '@/components/admin/ProductManager';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -175,9 +175,17 @@ const Admin = () => {
             <p className="text-sm text-muted-foreground">
               Zalogowany jako: <span className="font-semibold">{user.email}</span>
             </p>
-            <p className="text-xs text-green-600 mt-1">
-              ✓ Połączono z bazą danych Supabase ({supabaseHook.products.length} produktów)
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-green-600">
+                ✓ Połączono z bazą danych Supabase ({supabaseHook.products.length} produktów)
+              </p>
+              {supabaseHook.isLoading && (
+                <div className="flex items-center gap-1 text-xs text-blue-600">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Synchronizacja...
+                </div>
+              )}
+            </div>
           </div>
           <Button
             onClick={handleLogout}
@@ -191,10 +199,16 @@ const Admin = () => {
         
         <ProductManager {...productManagerProps} />
         
-        {supabaseHook.isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stakerpol-orange mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Ładowanie produktów z bazy danych...</p>
+        {(supabaseHook.isAddingProduct || supabaseHook.isUpdatingProduct || supabaseHook.isDeletingProduct) && (
+          <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border">
+            <div className="flex items-center gap-2 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin text-stakerpol-orange" />
+              <span>
+                {supabaseHook.isAddingProduct && 'Dodawanie produktu...'}
+                {supabaseHook.isUpdatingProduct && 'Aktualizowanie produktu...'}
+                {supabaseHook.isDeletingProduct && 'Usuwanie produktu...'}
+              </span>
+            </div>
           </div>
         )}
       </div>
