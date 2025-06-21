@@ -1,23 +1,11 @@
 
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableHead, 
-  TableRow, 
-  TableCell 
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileImage, Search, Copy, Pencil, Trash2 } from 'lucide-react';
-import { Product } from '@/types';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useTranslation } from '@/utils/translations';
-import { useToast } from '@/hooks/use-toast';
-import { measurePerformance } from '@/utils/performance';
+import { Eye, Edit, Copy, Trash2, Search } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import PDFQuoteGenerator from './PDFQuoteGenerator';
 
 interface CompactProductTableProps {
   products: Product[];
@@ -27,320 +15,162 @@ interface CompactProductTableProps {
 }
 
 const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProductTableProps) => {
-  const navigate = useNavigate();
-  const { language } = useLanguage();
-  const t = useTranslation(language);
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    
-    return products.filter(product =>
-      product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.shortDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.specs.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.specs.productionYear?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [products, searchTerm]);
+  const filteredProducts = products.filter(product =>
+    product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.shortDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.specs.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleModelClick = (productId: string) => {
-    navigate(`/products/${productId}`);
+  const toggleExpanded = (productId: string) => {
+    setExpandedProduct(expandedProduct === productId ? null : productId);
   };
 
-  const exportToPDF = () => {
-    const printContent = generatePrintableTable();
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-      
-      toast({
-        title: t('exportCompleted'),
-        description: t('printSavePdf')
-      });
-    }
-  };
-
-  const exportToJPG = async () => {
-    try {
-      measurePerformance.markStart('jpg-export');
-      
-      // Lazy load html2canvas
-      const html2canvas = await measurePerformance.loadHtml2Canvas();
-      
-      if (!html2canvas) {
-        toast({
-          title: t('exportError'),
-          description: t('exportLibraryNotAvailable'),
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generateExportTable();
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.padding = '40px';
-      tempDiv.style.width = '1200px';
-      document.body.appendChild(tempDiv);
-
-      const canvas = await html2canvas(tempDiv, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-
-      document.body.removeChild(tempDiv);
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `stakerpol-produkty-${new Date().toISOString().split('T')[0]}.jpg`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
-          measurePerformance.markEnd('jpg-export');
-          
-          toast({
-            title: t('exportCompleted'),
-            description: t('jpgFileDownloaded')
-          });
-        }
-      }, 'image/jpeg', 0.95);
-    } catch (error) {
-      console.error('Export to JPG failed:', error);
-      toast({
-        title: t('exportError'),
-        description: t('jpgExportFailed'),
-        variant: "destructive"
-      });
-    }
-  };
-
-  const generateExportTable = () => {
-    const currentDate = new Date().toLocaleDateString('pl-PL');
-    const contactInfo = `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #1e40af;">
-        <div style="flex: 1;">
-          <h1 style="color: #1e40af; margin: 0 0 8px 0; font-size: 24px; font-weight: bold;">FHU Stakerpol</h1>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;"><strong>Michał Seweryn</strong></p>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;">32-043 Skała</p>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;">ul. Szewska 6</p>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;"><strong>NIP:</strong> PL6492111954</p>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;"><strong>Tel:</strong> +48 694 133 592</p>
-          <p style="margin: 4px 0; font-size: 12px; color: #374151;"><strong>E-mail:</strong> info@stakerpol.pl</p>
-        </div>
-        <div style="text-align: right;">
-          <p style="margin: 0; color: #6b7280; font-size: 12px;">${t('exportDate')}: ${currentDate}</p>
-          <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 12px;">${t('totalProducts')}: ${filteredProducts.length}</p>
-        </div>
-      </div>
-    `;
-
-    return `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #111827; max-width: 1200px; margin: 0 auto;">
-        ${contactInfo}
-        
-        <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 18px;">${t('inventoryStatement')}</h2>
-        
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <thead>
-            <tr style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white;">
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('model')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('serialNumber')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('productionYear')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('liftHeight')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('workingHours')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px; border-right: 1px solid rgba(255,255,255,0.3);">${t('battery')}</th>
-              <th style="padding: 10px 6px; text-align: left; font-weight: 600; font-size: 12px;">${t('operatorPlatform')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filteredProducts.map((product, index) => `
-              <tr style="background: ${index % 2 === 0 ? '#f8fafc' : 'white'}; border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 8px 6px; font-weight: 500; color: #1e40af; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.model}</td>
-                <td style="padding: 8px 6px; color: #374151; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.specs.serialNumber || '-'}</td>
-                <td style="padding: 8px 6px; color: #374151; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.specs.productionYear || '-'}</td>
-                <td style="padding: 8px 6px; color: #374151; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.specs.liftHeight || '-'}</td>
-                <td style="padding: 8px 6px; color: #374151; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.specs.workingHours || '-'}</td>
-                <td style="padding: 8px 6px; color: #374151; border-right: 1px solid #e5e7eb; font-size: 11px;">${product.specs.battery || '-'}</td>
-                <td style="padding: 8px 6px; color: #374151; font-size: 11px;">${product.specs.operatorPlatform || '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  };
-
-  const generatePrintableTable = () => {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${t('inventoryStatement')}</title>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: white; }
-          @media print {
-            body { margin: 0; padding: 15px; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        ${generateExportTable()}
-      </body>
-      </html>
-    `;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pl-PL');
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <CardTitle className="text-lg">{t('compactTableView')}</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-initial">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder={t('filterProducts')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-full sm:w-64"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportToPDF}
-                className="flex-1 sm:flex-initial"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportToJPG}
-                className="flex-1 sm:flex-initial"
-              >
-                <FileImage className="mr-2 h-4 w-4" />
-                JPG
-              </Button>
-            </div>
+    <div className="space-y-4">
+      {/* Pasek wyszukiwania */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Input
+          placeholder="Szukaj produktów..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Lista produktów */}
+      <div className="space-y-3">
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            {searchTerm ? 'Nie znaleziono produktów odpowiadających wyszukiwaniu' : 'Brak produktów do wyświetlenia'}
           </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-0 overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[180px]">{t('model')}</TableHead>
-              <TableHead className="hidden sm:table-cell w-[120px]">{t('serialNumber')}</TableHead>
-              <TableHead className="hidden md:table-cell w-[100px]">{t('productionYear')}</TableHead>
-              <TableHead className="hidden lg:table-cell w-[120px]">{t('liftHeight')}</TableHead>
-              <TableHead className="hidden xl:table-cell w-[100px]">{t('workingHours')}</TableHead>
-              <TableHead className="hidden xl:table-cell w-[100px]">{t('battery')}</TableHead>
-              <TableHead className="hidden 2xl:table-cell w-[140px]">{t('operatorPlatform')}</TableHead>
-              <TableHead className="text-right w-[120px]">Akcje</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProducts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? t('noMatchingProducts') : t('noProducts')}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredProducts.map((product) => (
-                <TableRow key={product.id} className="hover:bg-muted/50">
-                  <TableCell>
-                    <div className="space-y-1">
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto font-medium text-left justify-start hover:text-stakerpol-orange"
-                        onClick={() => handleModelClick(product.id)}
-                      >
-                        {product.model}
-                      </Button>
-                      <div className="text-xs text-muted-foreground sm:hidden">
-                        {product.specs.serialNumber && `S/N: ${product.specs.serialNumber}`}
+        ) : (
+          filteredProducts.map((product) => (
+            <Card key={product.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  {/* Lewa sekcja - podstawowe informacje */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-4">
+                      {/* Miniaturka */}
+                      <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                        {product.image || (product.images && product.images[0]) ? (
+                          <img
+                            src={product.image || product.images[0]}
+                            alt={product.model}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            Brak zdjęcia
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Informacje podstawowe */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-stakerpol-navy truncate">
+                          {product.model}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {product.shortDescription}
+                        </p>
+                        <div className="flex gap-4 text-xs text-gray-500 mt-1">
+                          <span>Nr: {product.specs.serialNumber || 'Brak'}</span>
+                          <span>Rok: {product.specs.productionYear || 'Brak'}</span>
+                          <span>Stan: {product.specs.condition || 'Brak'}</span>
+                        </div>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {product.specs.serialNumber || '-'}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.specs.productionYear || '-'}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {product.specs.liftHeight || '-'}
-                  </TableCell>
-                  <TableCell className="hidden xl:table-cell">
-                    {product.specs.workingHours || '-'}
-                  </TableCell>
-                  <TableCell className="hidden xl:table-cell">
-                    {product.specs.battery || '-'}
-                  </TableCell>
-                  <TableCell className="hidden 2xl:table-cell">
-                    {product.specs.operatorPlatform || '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onCopy(product)}
-                        className="h-8 w-8 p-0"
-                        title={t('copyProduct')}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onEdit(product)}
-                        className="h-8 w-8 p-0"
-                        title={t('editProduct')}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onDelete(product)}
-                        className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
-                        title={t('deleteProduct')}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                  </div>
+
+                  {/* Prawa sekcja - akcje */}
+                  <div className="flex items-center gap-2 ml-4">
+                    <PDFQuoteGenerator product={product} />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleExpanded(product.id)}
+                      className="text-gray-600"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEdit(product)}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onCopy(product)}
+                      className="text-green-600 border-green-200 hover:bg-green-50"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDelete(product)}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Rozszerzone szczegóły */}
+                {expandedProduct === product.id && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Data utworzenia:</span>
+                        <span className="ml-2 text-gray-600">{formatDate(product.createdAt)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Ostatnia modyfikacja:</span>
+                        <span className="ml-2 text-gray-600">{formatDate(product.updatedAt)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Udźwig maszt:</span>
+                        <span className="ml-2 text-gray-600">{product.specs.mastLiftingCapacity || 'Brak'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Godziny pracy:</span>
+                        <span className="ml-2 text-gray-600">{product.specs.workingHours || 'Brak'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Wysokość podnoszenia:</span>
+                        <span className="ml-2 text-gray-600">{product.specs.liftHeight || 'Brak'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Bateria:</span>
+                        <span className="ml-2 text-gray-600">{product.specs.battery || 'Brak'}</span>
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Podsumowanie */}
+      <div className="text-sm text-gray-600 text-center py-2">
+        Wyświetlono {filteredProducts.length} z {products.length} produktów
+      </div>
+    </div>
   );
 };
 
