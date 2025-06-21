@@ -94,21 +94,24 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+          className="text-blue-600 border-blue-200 hover:bg-blue-50 px-2 sm:px-3"
           title="Wygeneruj ofertę PDF"
         >
-          <ArrowUp className="h-4 w-4" />
+          <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md mx-4 w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader>
-          <DialogTitle className="text-stakerpol-navy">
-            Generuj ofertę PDF - {product.model}
+          <DialogTitle className="text-stakerpol-navy text-base sm:text-lg">
+            Generuj ofertę PDF
           </DialogTitle>
+          <p className="text-sm text-gray-600 mt-1">
+            {product.model}
+          </p>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="netPrice">Cena netto (PLN) *</Label>
+            <Label htmlFor="netPrice" className="text-sm">Cena netto (PLN) *</Label>
             <Input
               id="netPrice"
               type="number"
@@ -121,7 +124,7 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="transportPrice">Cena transportu (PLN) *</Label>
+            <Label htmlFor="transportPrice" className="text-sm">Cena transportu (PLN) *</Label>
             <Input
               id="transportPrice"
               type="number"
@@ -134,7 +137,7 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="clientName">Klient *</Label>
+            <Label htmlFor="clientName" className="text-sm">Klient *</Label>
             <Input
               id="clientName"
               type="text"
@@ -144,18 +147,19 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
               className="w-full"
             />
           </div>
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}
               disabled={isGenerating}
+              className="w-full sm:w-auto"
             >
               Anuluj
             </Button>
             <Button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="cta-button"
+              className="cta-button w-full sm:w-auto"
             >
               {isGenerating ? 'Generowanie...' : 'Wygeneruj PDF'}
             </Button>

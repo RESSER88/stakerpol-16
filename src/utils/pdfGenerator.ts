@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { Product } from '@/types';
 
@@ -127,29 +126,20 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   yPos += 15;
   
-  // Ramka dla produktu
+  // Ramka dla produktu - tylko model bez opisu
   doc.setDrawColor(lightGray);
   doc.setFillColor(lightGray);
-  doc.rect(20, yPos, pageWidth - 40, 80, 'F');
+  doc.rect(20, yPos, pageWidth - 40, 40, 'F');
   doc.setDrawColor(primaryColor);
-  doc.rect(20, yPos, pageWidth - 40, 80);
+  doc.rect(20, yPos, pageWidth - 40, 40);
   
-  // Model produktu
+  // Model produktu - wyśrodkowany
   doc.setFontSize(16);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(product.model, 25, yPos + 15);
+  doc.text(product.model, pageWidth / 2, yPos + 25, { align: 'center' });
   
-  // Opis produktu
-  doc.setFontSize(10);
-  doc.setTextColor(textColor);
-  doc.setFont('helvetica', 'normal');
-  if (product.shortDescription) {
-    const descriptionLines = doc.splitTextToSize(product.shortDescription, pageWidth - 60);
-    doc.text(descriptionLines, 25, yPos + 25);
-  }
-  
-  yPos += 90;
+  yPos += 50;
   
   // === SPECYFIKACJA TECHNICZNA ===
   
@@ -160,18 +150,19 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   yPos += 10;
   
-  // Przygotowanie danych specyfikacji
+  // Przygotowanie danych specyfikacji - tylko określone pola
   const specs = [
-    { label: 'Rok produkcji', value: product.specs.productionYear },
+    { label: 'Model', value: product.model },
     { label: 'Numer seryjny', value: product.specs.serialNumber },
-    { label: 'Udźwig maszt', value: product.specs.mastLiftingCapacity },
-    { label: 'Udźwig wstępne podnoszenie', value: product.specs.preliminaryLiftingCapacity },
-    { label: 'Godziny pracy', value: product.specs.workingHours },
-    { label: 'Wysokość podnoszenia', value: product.specs.liftHeight },
-    { label: 'Wysokość minimalna', value: product.specs.minHeight },
-    { label: 'Podnoszenie wstępne', value: product.specs.preliminaryLifting },
-    { label: 'Bateria', value: product.specs.battery },
-    { label: 'Stan', value: product.specs.condition }
+    { label: 'Rok produkcji', value: product.specs.productionYear },
+    { label: 'Udźwig przy podnoszeniu masztu [kg]', value: product.specs.mastLiftingCapacity },
+    { label: 'Udźwig przy podnoszeniu wstępnym [kg]', value: product.specs.preliminaryLiftingCapacity },
+    { label: 'Godziny pracy [mh]', value: product.specs.workingHours },
+    { label: 'Wysokość podnoszenia [mm]', value: product.specs.liftHeight },
+    { label: 'Wysokość konstrukcyjna [mm]', value: product.specs.minHeight },
+    { label: 'Wstępne podnoszenie', value: product.specs.preliminaryLifting },
+    { label: 'Wymiary (długość / szerokość) [mm]', value: product.specs.dimensions },
+    { label: 'Składany podest dla operatora', value: product.specs.operatorPlatform }
   ].filter(spec => spec.value && spec.value.trim() !== '');
   
   // Tabela specyfikacji
