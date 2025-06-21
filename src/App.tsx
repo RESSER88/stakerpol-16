@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import { trackWebVitals } from "./utils/performance";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -28,9 +27,17 @@ const queryClient = new QueryClient({
 
 const App = () => {
   useEffect(() => {
-    // Track web vitals in production
+    // Track web vitals in production with error handling
     if (process.env.NODE_ENV === 'production') {
-      trackWebVitals();
+      try {
+        import('./utils/performance').then(({ trackWebVitals }) => {
+          trackWebVitals();
+        }).catch((error) => {
+          console.warn('Failed to load performance tracking:', error);
+        });
+      } catch (error) {
+        console.warn('Error setting up performance tracking:', error);
+      }
     }
   }, []);
 
