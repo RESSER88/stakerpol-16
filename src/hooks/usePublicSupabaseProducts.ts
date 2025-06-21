@@ -10,13 +10,14 @@ import {
 } from '@/types/supabase';
 
 export const usePublicSupabaseProducts = () => {
-  // Fetch products with aggressive caching strategy for public pages
+  // Fetch products with optimized caching strategy for public pages
   const { data: products = [], isLoading, error, refetch } = useQuery({
     queryKey: ['public-products'],
     queryFn: async () => {
       console.log('Fetching products for public pages...');
       const startTime = performance.now();
       
+      // Fetch products - now accessible to all users thanks to public RLS policy
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -27,6 +28,7 @@ export const usePublicSupabaseProducts = () => {
         throw productsError;
       }
 
+      // Fetch product images - now accessible to all users thanks to public RLS policy
       const { data: imagesData, error: imagesError } = await supabase
         .from('product_images')
         .select('*')
@@ -34,6 +36,7 @@ export const usePublicSupabaseProducts = () => {
 
       if (imagesError) {
         console.error('Error fetching images:', imagesError);
+        // Don't throw here, images are optional
       }
 
       const mappedProducts = (productsData || []).map((product: SupabaseProduct) => {
@@ -44,20 +47,20 @@ export const usePublicSupabaseProducts = () => {
       });
 
       const endTime = performance.now();
-      console.log(`Fetched ${mappedProducts.length} products for public pages in ${(endTime - startTime).toFixed(2)}ms`);
+      console.log(`✅ Successfully fetched ${mappedProducts.length} products for public pages in ${(endTime - startTime).toFixed(2)}ms`);
       
       return mappedProducts;
     },
-    staleTime: 10 * 1000, // 10 seconds cache for faster sync with admin changes
-    gcTime: 60 * 1000, // 1 minute in memory for better performance
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 10 * 60 * 1000, // 10 minutes in memory
     retry: 3,
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchInterval: 15 * 1000, // Auto-refetch every 15 seconds for real-time sync
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds for real-time sync
   });
 
   // Enhanced realtime subscription for immediate sync with admin panel
   useEffect(() => {
-    console.log('Setting up enhanced realtime subscriptions for public pages...');
+    console.log('Setting up realtime subscriptions for public pages...');
     
     // Products subscription with immediate refetch
     const productsChannel = supabase
@@ -71,7 +74,6 @@ export const usePublicSupabaseProducts = () => {
         },
         (payload) => {
           console.log('Public products realtime update detected:', payload);
-          // Force immediate refetch for instant sync
           refetch();
         }
       )
@@ -89,23 +91,15 @@ export const usePublicSupabaseProducts = () => {
         },
         (payload) => {
           console.log('Public product images realtime update detected:', payload);
-          // Force immediate refetch for instant sync
           refetch();
         }
       )
       .subscribe();
 
-    // Additional periodic sync to ensure data consistency
-    const syncInterval = setInterval(() => {
-      console.log('Performing periodic sync check...');
-      refetch();
-    }, 30 * 1000); // Every 30 seconds
-
     return () => {
-      console.log('Cleaning up realtime subscriptions and sync interval...');
+      console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(imagesChannel);
-      clearInterval(syncInterval);
     };
   }, [refetch]);
 
@@ -113,6 +107,6 @@ export const usePublicSupabaseProducts = () => {
     products,
     isLoading,
     error,
-    refetch // Expose refetch for manual sync
+    refetch
   };
 };
