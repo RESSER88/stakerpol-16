@@ -5,6 +5,7 @@ import Layout from '@/components/layout/Layout';
 import CallToAction from '@/components/ui/CallToAction';
 import ProductCard from '@/components/ui/ProductCard';
 import WhyChooseUs from '@/components/ui/WhyChooseUs';
+import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -21,6 +22,48 @@ const Index = () => {
   const featuredProducts = useMemo(() => {
     return getRandomItems(products, 4);
   }, [products]);
+
+  const renderFeaturedProducts = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+            <p className="text-muted-foreground">Ładowanie produktów...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (products.length === 0) {
+      return <ProductsEmptyState />;
+    }
+
+    return (
+      <>
+        <div className="product-grid-desktop mt-8">
+          {featuredProducts.map((product, index) => (
+            <div key={product.id} style={{ animationDelay: `${index * 100}ms` }}>
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-center mt-12">
+          <Button 
+            variant="outline" 
+            size="lg"
+            className="secondary-button"
+            asChild
+          >
+            <Link to="/products">
+              {t('viewAllProducts')}
+            </Link>
+          </Button>
+        </div>
+      </>
+    );
+  };
 
   return (
     <Layout>
@@ -90,35 +133,7 @@ const Index = () => {
             {t('featuredProductsSubtitle')}
           </p>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
-                <p className="text-muted-foreground">Ładowanie produktów...</p>
-              </div>
-            </div>
-          ) : (
-            <div className="product-grid-desktop mt-8">
-              {featuredProducts.map((product, index) => (
-                <div key={product.id} style={{ animationDelay: `${index * 100}ms` }}>
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="text-center mt-12">
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="secondary-button"
-              asChild
-            >
-              <Link to="/products">
-                {t('viewAllProducts')}
-              </Link>
-            </Button>
-          </div>
+          {renderFeaturedProducts()}
         </div>
       </section>
 

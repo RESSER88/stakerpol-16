@@ -2,6 +2,7 @@
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/ui/ProductCard';
 import CallToAction from '@/components/ui/CallToAction';
+import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
@@ -28,22 +29,32 @@ const Products = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <section className="bg-gradient-to-b from-stakerpol-lightgray to-white py-12">
-          <div className="container-custom">
-            <div className="flex justify-center items-center min-h-[400px]">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
-                <p className="text-muted-foreground">Ładowanie produktów...</p>
-              </div>
-            </div>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+            <p className="text-muted-foreground">Ładowanie produktów...</p>
           </div>
-        </section>
-      </Layout>
+        </div>
+      );
+    }
+
+    if (products.length === 0) {
+      return <ProductsEmptyState />;
+    }
+
+    return (
+      <div className="product-grid-desktop">
+        {products.map((product, index) => (
+          <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+            <ProductCard product={product} />
+          </div>
+        ))}
+      </div>
     );
-  }
+  };
 
   return (
     <Layout>
@@ -64,13 +75,7 @@ const Products = () => {
             {getPageDescription()}
           </p>
           
-          <div className="product-grid-desktop">
-            {products.map((product, index) => (
-              <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+          {renderContent()}
         </div>
       </section>
       
