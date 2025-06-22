@@ -21,11 +21,9 @@ const getNextQuoteNumber = (): string => {
   const currentYear = new Date().getFullYear();
   const storageKey = `quote_counter_${currentYear}`;
   
-  // Pobierz aktualny licznik z localStorage
   let counter = parseInt(localStorage.getItem(storageKey) || '0');
   counter += 1;
   
-  // Zapisz nowy licznik
   localStorage.setItem(storageKey, counter.toString());
   
   return `${counter.toString().padStart(3, '0')}/${currentYear}`;
@@ -47,6 +45,29 @@ const formatPrice = (price: number): string => {
   }).format(price);
 };
 
+// Funkcja do obsługi polskich znaków
+const handlePolishText = (text: string): string => {
+  return text
+    .replace(/ą/g, 'a')
+    .replace(/ć/g, 'c')
+    .replace(/ę/g, 'e')
+    .replace(/ł/g, 'l')
+    .replace(/ń/g, 'n')
+    .replace(/ó/g, 'o')
+    .replace(/ś/g, 's')
+    .replace(/ź/g, 'z')
+    .replace(/ż/g, 'z')
+    .replace(/Ą/g, 'A')
+    .replace(/Ć/g, 'C')
+    .replace(/Ę/g, 'E')
+    .replace(/Ł/g, 'L')
+    .replace(/Ń/g, 'N')
+    .replace(/Ó/g, 'O')
+    .replace(/Ś/g, 'S')
+    .replace(/Ź/g, 'Z')
+    .replace(/Ż/g, 'Z');
+};
+
 export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   const { 
     product, 
@@ -62,22 +83,19 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     additionalNotes
   } = data;
   
-  // Tworzenie dokumentu PDF
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
-  // Kolory zgodne z identyfikacją wizualną (ulepszone)
-  const primaryColor = '#002B5B'; // Ciemny granat
-  const accentColor = '#1D4ED8'; // Niebieski akcent
-  const textColor = '#374151'; // Szary tekst
-  const lightGray = '#F3F4F6'; // Jasne tło
-  const orangeAccent = '#f97316'; // Pomarańczowy Stakerpol
+  // Kolory minimalistyczne
+  const primaryColor = '#111827'; // Ciemny szary
+  const lightGray = '#F9FAFB'; // Bardzo jasny szary
+  const borderColor = '#E5E7EB'; // Szara ramka
   
   // Daty
   const today = new Date();
   const validUntil = new Date();
-  validUntil.setDate(today.getDate() + 14); // Ważna 14 dni
+  validUntil.setDate(today.getDate() + 14);
   
   const quoteNumber = getNextQuoteNumber();
   
@@ -87,31 +105,28 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   doc.setFontSize(14);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('FHU STAKERPOL', 15, 20);
+  doc.text(handlePolishText('FHU STAKERPOL'), 15, 20);
   
   doc.setFontSize(9);
-  doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
-  doc.text('ul. Szewska 6, 32-043 Skała', 15, 25);
+  doc.text(handlePolishText('ul. Szewska 6, 32-043 Skała'), 15, 25);
   doc.text('Tel: +48 694 133 592', 15, 29);
   doc.text('E-mail: info@stakerpol.pl', 15, 33);
   doc.text('www.stakerpol.pl', 15, 37);
   
   // Prawa strona - numer oferty i daty
   doc.setFontSize(16);
-  doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(`OFERTA ${quoteNumber}`, pageWidth - 15, 20, { align: 'right' });
+  doc.text(handlePolishText(`OFERTA ${quoteNumber}`), pageWidth - 15, 20, { align: 'right' });
   
   doc.setFontSize(9);
-  doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Data wystawienia: ${formatDate(today)}`, pageWidth - 15, 27, { align: 'right' });
-  doc.text(`Ważna do: ${formatDate(validUntil)}`, pageWidth - 15, 31, { align: 'right' });
+  doc.text(handlePolishText(`Data wystawienia: ${formatDate(today)}`), pageWidth - 15, 27, { align: 'right' });
+  doc.text(handlePolishText(`Wazna do: ${formatDate(validUntil)}`), pageWidth - 15, 31, { align: 'right' });
   
   // Linia oddzielająca nagłówek
-  doc.setDrawColor(accentColor);
-  doc.setLineWidth(1.5);
+  doc.setDrawColor(borderColor);
+  doc.setLineWidth(0.5);
   doc.line(15, 45, pageWidth - 15, 45);
   
   let yPos = 55;
@@ -121,17 +136,17 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   const hasClientData = clientName || companyName || email || phone || address;
   
   if (hasClientData) {
-    // Nagłówek sekcji z ikoną
     doc.setFontSize(12);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('👤 DLA KLIENTA', 15, yPos);
+    doc.text(handlePolishText('DLA KLIENTA'), 15, yPos);
     
-    // Tło sekcji
-    doc.setFillColor(243, 244, 246);
-    doc.rect(15, yPos + 2, pageWidth - 30, 18, 'F');
+    // Linia pod nagłówkiem
+    doc.setDrawColor(borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos + 2, pageWidth - 15, yPos + 2);
     
-    doc.setTextColor(textColor);
+    doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     
@@ -139,23 +154,23 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     
     if (clientName) {
       doc.setFont('helvetica', 'bold');
-      doc.text(clientName, 20, clientYPos);
+      doc.text(handlePolishText(clientName), 15, clientYPos);
       doc.setFont('helvetica', 'normal');
       clientYPos += 4;
     }
     
     if (companyName) {
-      doc.text(companyName, 20, clientYPos);
+      doc.text(handlePolishText(companyName), 15, clientYPos);
       clientYPos += 4;
     }
     
-    // Dane kontaktowe w jednej linii jeśli się mieszczą
-    let contactInfo = [];
-    if (email) contactInfo.push(`E-mail: ${email}`);
-    if (phone) contactInfo.push(`Tel: ${phone}`);
+    if (email) {
+      doc.text(`E-mail: ${email}`, 15, clientYPos);
+      clientYPos += 4;
+    }
     
-    if (contactInfo.length > 0) {
-      doc.text(contactInfo.join(' | '), 20, clientYPos);
+    if (phone) {
+      doc.text(`Tel: ${handlePolishText(phone)}`, 15, clientYPos);
       clientYPos += 4;
     }
     
@@ -163,95 +178,85 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
       const addressLines = address.split('\n');
       addressLines.forEach((line, index) => {
         if (line.trim()) {
-          doc.text(line.trim(), 20, clientYPos + (index * 3));
+          doc.text(handlePolishText(line.trim()), 15, clientYPos + (index * 4));
         }
       });
-      clientYPos += addressLines.length * 3;
+      clientYPos += addressLines.length * 4;
     }
     
-    yPos = Math.max(yPos + 22, clientYPos + 5);
+    yPos = clientYPos + 10;
   }
   
-  // === SEKCJA PRODUKTU ===
+  // === SPECYFIKACJA TECHNICZNA ===
   
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('🛠 OFEROWANY PRODUKT', 15, yPos);
+  doc.text(handlePolishText('SPECYFIKACJA TECHNICZNA'), 15, yPos);
   
-  yPos += 8;
+  // Linia pod nagłówkiem
+  doc.setDrawColor(borderColor);
+  doc.setLineWidth(0.3);
+  doc.line(15, yPos + 2, pageWidth - 15, yPos + 2);
   
-  // Ramka produktu z gradientem wizualnym
-  doc.setDrawColor(accentColor);
-  doc.setFillColor(230, 240, 255);
-  doc.rect(15, yPos, pageWidth - 30, 20, 'FD');
+  yPos += 10;
   
-  // Model produktu - wyśrodkowany i wyróżniony
-  doc.setFontSize(14);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text(product.model, pageWidth / 2, yPos + 13, { align: 'center' });
-  
-  yPos += 28;
-  
-  // === SPECYFIKACJA TECHNICZNA (kafelkowy układ) ===
-  
-  doc.setFontSize(11);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text('📋 SPECYFIKACJA TECHNICZNA', 15, yPos);
-  
-  yPos += 6;
-  
-  // Przygotowanie danych specyfikacji (wybrane pola)
+  // Przygotowanie danych specyfikacji - MODEL JAKO PIERWSZY
   const specs = [
-    { label: 'Numer seryjny', value: product.specs.serialNumber, icon: '#️⃣' },
-    { label: 'Rok produkcji', value: product.specs.productionYear, icon: '📅' },
-    { label: 'Udźwig (maszt)', value: product.specs.mastLiftingCapacity ? `${product.specs.mastLiftingCapacity} kg` : '', icon: '⚖️' },
-    { label: 'Udźwig (wstępny)', value: product.specs.preliminaryLiftingCapacity ? `${product.specs.preliminaryLiftingCapacity} kg` : '', icon: '📊' },
-    { label: 'Godziny pracy', value: product.specs.workingHours ? `${product.specs.workingHours} mh` : '', icon: '⏰' },
-    { label: 'Wys. podnoszenia', value: product.specs.liftHeight ? `${product.specs.liftHeight} mm` : '', icon: '📏' },
-    { label: 'Wys. konstrukcyjna', value: product.specs.minHeight ? `${product.specs.minHeight} mm` : '', icon: '📐' },
-    { label: 'Wymiary', value: product.specs.dimensions, icon: '📦' },
-    { label: 'Podest operatora', value: product.specs.operatorPlatform, icon: '🧑\u200D💼' }
+    { label: 'Model', value: product.model },
+    { label: 'Numer seryjny', value: product.specs.serialNumber },
+    { label: 'Rok produkcji', value: product.specs.productionYear },
+    { label: 'Udzwig (maszt)', value: product.specs.mastLiftingCapacity ? `${product.specs.mastLiftingCapacity} kg` : '' },
+    { label: 'Udzwig (wstepny)', value: product.specs.preliminaryLiftingCapacity ? `${product.specs.preliminaryLiftingCapacity} kg` : '' },
+    { label: 'Godziny pracy', value: product.specs.workingHours ? `${product.specs.workingHours} mh` : '' },
+    { label: 'Wys. podnoszenia', value: product.specs.liftHeight ? `${product.specs.liftHeight} mm` : '' },
+    { label: 'Wys. konstrukcyjna', value: product.specs.minHeight ? `${product.specs.minHeight} mm` : '' },
+    { label: 'Wymiary', value: product.specs.dimensions },
+    { label: 'Podest operatora', value: product.specs.operatorPlatform },
+    { label: 'Produkt uzywany', value: 'Tak' } // Zawsze na końcu
   ].filter(spec => spec.value && spec.value.trim() !== '');
   
-  // Kompaktowa tabela specyfikacji z lepszą stylizacją
-  doc.setFontSize(8);
-  doc.setTextColor(textColor);
+  // Tabela specyfikacji z czarnymi ramkami
+  doc.setFontSize(9);
+  doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'normal');
   
   const tableStartY = yPos;
-  const cellHeight = 4.5;
-  const col1Width = 75;
+  const cellHeight = 6;
+  const col1Width = 80;
+  
+  // Górna ramka tabeli
+  doc.setDrawColor('#000000');
+  doc.setLineWidth(0.5);
+  doc.line(15, tableStartY, pageWidth - 15, tableStartY);
   
   specs.forEach((spec, index) => {
     const currentY = tableStartY + (index * cellHeight);
     
-    // Przemienne tło dla lepszej czytelności
-    if (index % 2 === 0) {
-      doc.setFillColor(249, 250, 251);
-      doc.rect(15, currentY - 1, pageWidth - 30, cellHeight, 'F');
-    }
-    
     // Linie tabeli
-    doc.setDrawColor(229, 231, 235);
-    doc.line(15, currentY - 1, pageWidth - 15, currentY - 1);
-    doc.line(90, currentY - 1, 90, currentY + cellHeight - 1);
+    doc.setDrawColor('#000000');
+    doc.setLineWidth(0.3);
     
-    // Tekst z ikonami
+    // Linia pionowa oddzielająca kolumny
+    doc.line(15 + col1Width, currentY, 15 + col1Width, currentY + cellHeight);
+    
+    // Linie poziome
+    doc.line(15, currentY + cellHeight, pageWidth - 15, currentY + cellHeight);
+    
+    // Linie boczne tabeli
+    doc.line(15, currentY, 15, currentY + cellHeight);
+    doc.line(pageWidth - 15, currentY, pageWidth - 15, currentY + cellHeight);
+    
+    // Tekst w komórkach
     doc.setFont('helvetica', 'bold');
-    doc.text(`${spec.label}:`, 17, currentY + 2.5);
+    doc.text(handlePolishText(`${spec.label}:`), 17, currentY + 4);
     doc.setFont('helvetica', 'normal');
-    doc.text(spec.value, 92, currentY + 2.5);
+    doc.text(handlePolishText(spec.value), 17 + col1Width, currentY + 4);
   });
   
-  // Dolna linia tabeli
-  doc.line(15, tableStartY + (specs.length * cellHeight) - 1, pageWidth - 15, tableStartY + (specs.length * cellHeight) - 1);
+  yPos = tableStartY + (specs.length * cellHeight) + 15;
   
-  yPos = tableStartY + (specs.length * cellHeight) + 10;
-  
-  // === SEKCJA CENOWA I WARUNKI (kafelkowy układ) ===
+  // === WARUNKI HANDLOWE (jeśli są) ===
   
   const hasPricing = netPrice || transportPrice;
   const hasBusinessTerms = paymentMethod || leasingAvailable;
@@ -260,82 +265,72 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     doc.setFontSize(12);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('💰 WARUNKI HANDLOWE', 15, yPos);
+    doc.text(handlePolishText('WARUNKI HANDLOWE'), 15, yPos);
     
-    yPos += 8;
+    // Linia pod nagłówkiem
+    doc.setDrawColor(borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos + 2, pageWidth - 15, yPos + 2);
     
-    // Kafelkowe tło dla sekcji cenowej
-    doc.setDrawColor(orangeAccent);
-    doc.setFillColor(255, 251, 235);
+    yPos += 10;
     
-    let sectionHeight = 8;
-    const businessItems = [];
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'normal');
     
     if (netPrice) {
-      businessItems.push(`Cena netto: ${formatPrice(netPrice)} PLN`);
-      sectionHeight += 5;
+      doc.setFont('helvetica', 'bold');
+      doc.text(handlePolishText(`Cena netto: ${formatPrice(netPrice)} PLN`), 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 5;
     }
     
     if (transportPrice) {
-      businessItems.push(`Transport: ${formatPrice(transportPrice)} PLN`);
-      sectionHeight += 5;
+      doc.setFont('helvetica', 'bold');
+      doc.text(handlePolishText(`Transport: ${formatPrice(transportPrice)} PLN`), 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 5;
     }
     
     if (paymentMethod) {
-      businessItems.push(`Forma płatności: ${paymentMethod}`);
-      sectionHeight += 5;
+      doc.text(handlePolishText(`Forma platnosci: ${paymentMethod}`), 15, yPos);
+      yPos += 5;
     }
     
     if (leasingAvailable) {
-      businessItems.push('✅ Możliwość leasingu');
-      sectionHeight += 5;
+      doc.text(handlePolishText('Mozliwosc leasingu'), 15, yPos);
+      yPos += 5;
     }
     
-    businessItems.push(`Ważność oferty: ${formatDate(validUntil)}`);
-    sectionHeight += 5;
-    
-    doc.rect(15, yPos, pageWidth - 30, sectionHeight, 'FD');
-    
-    doc.setFontSize(10);
-    doc.setTextColor(textColor);
-    doc.setFont('helvetica', 'normal');
-    
-    businessItems.forEach((item, index) => {
-      if (item.includes('Cena netto') || item.includes('Transport')) {
-        doc.setFont('helvetica', 'bold');
-      } else {
-        doc.setFont('helvetica', 'normal');
-      }
-      doc.text(item, 20, yPos + 6 + (index * 5));
-    });
-    
-    yPos += sectionHeight + 10;
+    doc.text(handlePolishText(`Waznosc oferty: ${formatDate(validUntil)}`), 15, yPos);
+    yPos += 10;
   }
   
   // === UWAGI DODATKOWE (jeśli są) ===
   
   if (additionalNotes && additionalNotes.trim()) {
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('📝 UWAGI DODATKOWE', 15, yPos);
+    doc.text(handlePolishText('UWAGI DODATKOWE'), 15, yPos);
     
-    yPos += 6;
+    // Linia pod nagłówkiem
+    doc.setDrawColor(borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos + 2, pageWidth - 15, yPos + 2);
     
-    doc.setFillColor(245, 245, 245);
-    doc.rect(15, yPos, pageWidth - 30, 15, 'F');
+    yPos += 10;
     
     doc.setFontSize(9);
-    doc.setTextColor(textColor);
+    doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'normal');
     
-    // Podział długiego tekstu na linie
-    const noteLines = doc.splitTextToSize(additionalNotes, pageWidth - 40);
+    const noteLines = doc.splitTextToSize(handlePolishText(additionalNotes), pageWidth - 30);
     noteLines.forEach((line: string, index: number) => {
-      doc.text(line, 20, yPos + 5 + (index * 4));
+      doc.text(line, 15, yPos + (index * 4));
     });
     
-    yPos += 20;
+    yPos += noteLines.length * 4 + 10;
   }
   
   // === STOPKA KONTAKTOWA ===
@@ -343,22 +338,22 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   const footerY = Math.max(yPos + 15, pageHeight - 35);
   
   // Linia nad stopką
-  doc.setDrawColor(primaryColor);
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(borderColor);
+  doc.setLineWidth(0.3);
   doc.line(15, footerY - 5, pageWidth - 15, footerY - 5);
   
   // Dwukolumnowa stopka
   doc.setFontSize(10);
-  doc.setTextColor(textColor);
+  doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'normal');
   
   // Lewa strona - zachęta do kontaktu
-  doc.text('W razie pytań zapraszam do kontaktu:', 15, footerY + 2);
-  doc.text('Jesteśmy do Państwa dyspozycji!', 15, footerY + 7);
+  doc.text(handlePolishText('W razie pytan zapraszam do kontaktu:'), 15, footerY + 2);
+  doc.text(handlePolishText('Jestesmy do Panstwa dyspozycji!'), 15, footerY + 7);
   
   // Prawa strona - dane kontaktowe
   doc.setFont('helvetica', 'bold');
-  doc.text('Michał Seweryn', pageWidth - 15, footerY + 2, { align: 'right' });
+  doc.text(handlePolishText('Michal Seweryn'), pageWidth - 15, footerY + 2, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.text('+48 694 133 592', pageWidth - 15, footerY + 7, { align: 'right' });
   doc.text('info@stakerpol.pl', pageWidth - 15, footerY + 12, { align: 'right' });
@@ -369,6 +364,6 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   doc.text('www.stakerpol.pl', pageWidth / 2, footerY + 18, { align: 'center' });
   
   // Zapisanie i pobranie pliku
-  const fileName = `Oferta_${quoteNumber.replace('/', '_')}_${product.model.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+  const fileName = handlePolishText(`Oferta_${quoteNumber.replace('/', '_')}_${product.model.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
   doc.save(fileName);
 };
