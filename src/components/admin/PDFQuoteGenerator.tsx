@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowUp } from 'lucide-react';
 import { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -21,36 +22,58 @@ interface PDFQuoteGeneratorProps {
 
 const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Dane cenowe
   const [netPrice, setNetPrice] = useState('');
   const [transportPrice, setTransportPrice] = useState('');
+  
+  // Dane klienta
   const [clientName, setClientName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
-    // Walidacja pól
-    if (!netPrice || !transportPrice || !clientName) {
+    // Sprawdź czy przynajmniej jedno pole jest wypełnione
+    const hasAnyData = netPrice || transportPrice || clientName || companyName || email || phone || address;
+    
+    if (!hasAnyData) {
       toast({
-        title: "Błąd walidacji",
-        description: "Wszystkie pola są wymagane",
+        title: "Informacja",
+        description: "Wypełnij przynajmniej jedno pole aby wygenerować ofertę",
         variant: "destructive"
       });
       return;
     }
 
-    if (isNaN(Number(netPrice)) || isNaN(Number(transportPrice))) {
+    // Walidacja cen jeśli są wypełnione
+    if (netPrice && (isNaN(Number(netPrice)) || Number(netPrice) <= 0)) {
       toast({
         title: "Błąd walidacji",
-        description: "Ceny muszą być liczbami",
+        description: "Cena netto musi być poprawną liczbą większą od 0",
         variant: "destructive"
       });
       return;
     }
 
-    if (Number(netPrice) <= 0 || Number(transportPrice) < 0) {
+    if (transportPrice && (isNaN(Number(transportPrice)) || Number(transportPrice) < 0)) {
       toast({
         title: "Błąd walidacji",
-        description: "Cena netto musi być większa od 0, cena transportu nie może być ujemna",
+        description: "Cena transportu musi być poprawną liczbą większą lub równą 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Walidacja emaila jeśli jest wypełniony
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({
+        title: "Błąd walidacji",
+        description: "Podaj poprawny adres e-mail",
         variant: "destructive"
       });
       return;
@@ -61,9 +84,13 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
     try {
       await generatePDFQuote({
         product,
-        netPrice: Number(netPrice),
-        transportPrice: Number(transportPrice),
-        clientName: clientName.trim()
+        netPrice: netPrice ? Number(netPrice) : undefined,
+        transportPrice: transportPrice ? Number(transportPrice) : undefined,
+        clientName: clientName.trim() || undefined,
+        companyName: companyName.trim() || undefined,
+        email: email.trim() || undefined,
+        phone: phone.trim() || undefined,
+        address: address.trim() || undefined
       });
 
       toast({
@@ -75,6 +102,10 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
       setNetPrice('');
       setTransportPrice('');
       setClientName('');
+      setCompanyName('');
+      setEmail('');
+      setPhone('');
+      setAddress('');
       setIsOpen(false);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -100,7 +131,7 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
           <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md mx-4 w-[calc(100vw-2rem)] sm:w-full">
+      <DialogContent className="sm:max-w-2xl mx-4 w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-stakerpol-navy text-base sm:text-lg">
             Generuj ofertę PDF
@@ -108,46 +139,119 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
           <p className="text-sm text-gray-600 mt-1">
             {product.model}
           </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Wszystkie pola są opcjonalne. Wypełnij tylko te informacje, które chcesz umieścić w ofercie.
+          </p>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="netPrice" className="text-sm">Cena netto (PLN) *</Label>
-            <Input
-              id="netPrice"
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="np. 25000.00"
-              value={netPrice}
-              onChange={(e) => setNetPrice(e.target.value)}
-              className="w-full"
-            />
+        
+        <div className="space-y-6 py-4">
+          {/* Sekcja: Dane klienta */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2">
+              Dane klienta (opcjonalne)
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="clientName" className="text-sm">Imię i nazwisko</Label>
+                <Input
+                  id="clientName"
+                  type="text"
+                  placeholder="np. Jan Kowalski"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="companyName" className="text-sm">Nazwa firmy</Label>
+                <Input
+                  id="companyName"
+                  type="text"
+                  placeholder="np. Firma ABC Sp. z o.o."
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="np. klient@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm">Telefon</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="np. +48 123 456 789"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-sm">Adres</Label>
+              <Textarea
+                id="address"
+                placeholder="np. ul. Przykładowa 123&#10;00-000 Warszawa"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full resize-none"
+                rows={3}
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="transportPrice" className="text-sm">Cena transportu (PLN) *</Label>
-            <Input
-              id="transportPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="np. 500.00"
-              value={transportPrice}
-              onChange={(e) => setTransportPrice(e.target.value)}
-              className="w-full"
-            />
+
+          {/* Sekcja: Ceny */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2">
+              Ceny (opcjonalne)
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="netPrice" className="text-sm">Cena netto (PLN)</Label>
+                <Input
+                  id="netPrice"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="np. 25000.00"
+                  value={netPrice}
+                  onChange={(e) => setNetPrice(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="transportPrice" className="text-sm">Cena transportu (PLN)</Label>
+                <Input
+                  id="transportPrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="np. 500.00"
+                  value={transportPrice}
+                  onChange={(e) => setTransportPrice(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="clientName" className="text-sm">Klient *</Label>
-            <Input
-              id="clientName"
-              type="text"
-              placeholder="Imię i nazwisko lub nazwa firmy"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+
+          {/* Przyciski akcji */}
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4 border-t">
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}

@@ -1,11 +1,16 @@
+
 import jsPDF from 'jspdf';
 import { Product } from '@/types';
 
 interface QuoteData {
   product: Product;
-  netPrice: number;
-  transportPrice: number;
-  clientName: string;
+  netPrice?: number;
+  transportPrice?: number;
+  clientName?: string;
+  companyName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
 }
 
 // Funkcja do pobierania i liczenia numerów ofert
@@ -40,7 +45,7 @@ const formatPrice = (price: number): string => {
 };
 
 export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
-  const { product, netPrice, transportPrice, clientName } = data;
+  const { product, netPrice, transportPrice, clientName, companyName, email, phone, address } = data;
   
   // Tworzenie dokumentu PDF
   const doc = new jsPDF();
@@ -60,95 +65,128 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   const quoteNumber = getNextQuoteNumber();
   
-  // === NAGŁÓWEK ===
+  // === NAGŁÓWEK (kompaktowy) ===
   
   // Data w prawym górnym rogu
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setTextColor(textColor);
-  doc.text(`Data: ${formatDate(today)}`, pageWidth - 20, 20, { align: 'right' });
+  doc.text(`Data: ${formatDate(today)}`, pageWidth - 15, 15, { align: 'right' });
   
   // Tytuł oferty - wyśrodkowany
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(`OFERTA ${quoteNumber}`, pageWidth / 2, 35, { align: 'center' });
+  doc.text(`OFERTA ${quoteNumber}`, pageWidth / 2, 25, { align: 'center' });
   
   // Linia pod tytułem
   doc.setDrawColor(accentColor);
-  doc.setLineWidth(2);
-  doc.line(20, 45, pageWidth - 20, 45);
+  doc.setLineWidth(1.5);
+  doc.line(15, 32, pageWidth - 15, 32);
   
-  // === DANE OGÓLNE ===
+  // === DANE KLIENTA (tylko wypełnione pola) ===
   
-  let yPos = 60;
+  let yPos = 45;
   
-  // Dla:
-  doc.setFontSize(12);
+  // Sprawdź czy są jakiekolwiek dane klienta
+  const hasClientData = clientName || companyName || email || phone || address;
+  
+  if (hasClientData) {
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Dla:', 15, yPos);
+    
+    doc.setTextColor(textColor);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    let clientYPos = yPos;
+    
+    if (clientName) {
+      doc.text(clientName, 25, clientYPos);
+      clientYPos += 4;
+    }
+    
+    if (companyName) {
+      doc.text(companyName, 25, clientYPos);
+      clientYPos += 4;
+    }
+    
+    if (email) {
+      doc.text(`E-mail: ${email}`, 25, clientYPos);
+      clientYPos += 4;
+    }
+    
+    if (phone) {
+      doc.text(`Tel: ${phone}`, 25, clientYPos);
+      clientYPos += 4;
+    }
+    
+    if (address) {
+      const addressLines = address.split('\n');
+      addressLines.forEach((line, index) => {
+        if (line.trim()) {
+          doc.text(line.trim(), 25, clientYPos + (index * 4));
+        }
+      });
+      clientYPos += addressLines.length * 4;
+    }
+    
+    yPos = clientYPos + 8;
+  }
+  
+  // Od: (kompaktowe)
+  doc.setFontSize(11);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('Dla:', 20, yPos);
+  doc.text('Od:', 15, yPos);
   
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
-  doc.text(clientName, 35, yPos);
+  doc.setFontSize(10);
   
-  yPos += 15;
-  
-  // Od:
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Od:', 20, yPos);
-  
-  doc.setTextColor(textColor);
-  doc.setFont('helvetica', 'normal');
   const companyInfo = [
-    'FHU Stakerpol',
-    '32-043 Skała',
-    'ul. Szewska 6',
-    'E-mail: info@stakerpol.pl',
-    'Tel. +48 694 133 592',
+    'FHU Stakerpol, ul. Szewska 6, 32-043 Skała',
+    'E-mail: info@stakerpol.pl, Tel. +48 694 133 592',
     'www.stakerpol.pl'
   ];
   
   companyInfo.forEach((info, index) => {
-    doc.text(info, 35, yPos + (index * 5));
+    doc.text(info, 25, yPos + 4 + (index * 4));
   });
   
-  yPos += 45;
+  yPos += 20;
   
-  // === SEKCJA GŁÓWNA - PRODUKT ===
-  
-  // Nagłówek sekcji produktu
-  doc.setFontSize(14);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text('OFEROWANY PRODUKT', 20, yPos);
-  
-  yPos += 15;
-  
-  // Ramka dla produktu - tylko model bez opisu
-  doc.setDrawColor(lightGray);
-  doc.setFillColor(lightGray);
-  doc.rect(20, yPos, pageWidth - 40, 40, 'F');
-  doc.setDrawColor(primaryColor);
-  doc.rect(20, yPos, pageWidth - 40, 40);
-  
-  // Model produktu - wyśrodkowany
-  doc.setFontSize(16);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text(product.model, pageWidth / 2, yPos + 25, { align: 'center' });
-  
-  yPos += 50;
-  
-  // === SPECYFIKACJA TECHNICZNA ===
+  // === PRODUKT (kompaktowy) ===
   
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('SPECYFIKACJA TECHNICZNA:', 20, yPos);
+  doc.text('OFEROWANY PRODUKT', 15, yPos);
   
-  yPos += 10;
+  yPos += 8;
+  
+  // Ramka dla produktu - mniejsza
+  doc.setDrawColor(primaryColor);
+  doc.setFillColor(lightGray);
+  doc.rect(15, yPos, pageWidth - 30, 20, 'FD');
+  
+  // Model produktu - wyśrodkowany
+  doc.setFontSize(14);
+  doc.setTextColor(primaryColor);
+  doc.setFont('helvetica', 'bold');
+  doc.text(product.model, pageWidth / 2, yPos + 13, { align: 'center' });
+  
+  yPos += 28;
+  
+  // === SPECYFIKACJA TECHNICZNA (kompaktowa tabela) ===
+  
+  doc.setFontSize(11);
+  doc.setTextColor(primaryColor);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SPECYFIKACJA TECHNICZNA:', 15, yPos);
+  
+  yPos += 6;
   
   // Przygotowanie danych specyfikacji - tylko określone pola
   const specs = [
@@ -165,15 +203,14 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     { label: 'Składany podest dla operatora', value: product.specs.operatorPlatform }
   ].filter(spec => spec.value && spec.value.trim() !== '');
   
-  // Tabela specyfikacji
-  doc.setFontSize(9);
+  // Kompaktowa tabela specyfikacji
+  doc.setFontSize(8);
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
   
   const tableStartY = yPos;
-  const cellHeight = 6;
-  const col1Width = 80;
-  const col2Width = pageWidth - 60 - col1Width;
+  const cellHeight = 4;
+  const col1Width = 70;
   
   specs.forEach((spec, index) => {
     const currentY = tableStartY + (index * cellHeight);
@@ -181,76 +218,117 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     // Tło dla parzystych wierszy
     if (index % 2 === 0) {
       doc.setFillColor(249, 250, 251);
-      doc.rect(20, currentY - 2, pageWidth - 40, cellHeight, 'F');
+      doc.rect(15, currentY - 1, pageWidth - 30, cellHeight, 'F');
     }
     
     // Linie tabeli
     doc.setDrawColor(229, 231, 235);
-    doc.line(20, currentY - 2, pageWidth - 20, currentY - 2);
-    doc.line(20, currentY + cellHeight - 2, pageWidth - 20, currentY + cellHeight - 2);
-    doc.line(20, currentY - 2, 20, currentY + cellHeight - 2);
-    doc.line(100, currentY - 2, 100, currentY + cellHeight - 2);
-    doc.line(pageWidth - 20, currentY - 2, pageWidth - 20, currentY + cellHeight - 2);
+    doc.line(15, currentY - 1, pageWidth - 15, currentY - 1);
+    doc.line(85, currentY - 1, 85, currentY + cellHeight - 1);
     
     // Tekst
     doc.setFont('helvetica', 'bold');
-    doc.text(spec.label + ':', 22, currentY + 2);
+    doc.text(spec.label + ':', 17, currentY + 2);
     doc.setFont('helvetica', 'normal');
-    doc.text(spec.value, 102, currentY + 2);
+    doc.text(spec.value, 87, currentY + 2);
   });
   
-  yPos = tableStartY + (specs.length * cellHeight) + 15;
+  // Dolna linia tabeli
+  doc.line(15, tableStartY + (specs.length * cellHeight) - 1, pageWidth - 15, tableStartY + (specs.length * cellHeight) - 1);
   
-  // === PODSUMOWANIE FINANSOWE ===
+  yPos = tableStartY + (specs.length * cellHeight) + 10;
   
-  doc.setFontSize(14);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text('PODSUMOWANIE', 20, yPos);
+  // === PODSUMOWANIE FINANSOWE (tylko jeśli są ceny) ===
   
-  yPos += 15;
+  if (netPrice || transportPrice) {
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PODSUMOWANIE', 15, yPos);
+    
+    yPos += 8;
+    
+    // Ramka dla podsumowania - mniejsza
+    doc.setDrawColor(accentColor);
+    doc.setFillColor(255, 251, 235);
+    
+    let summaryHeight = 8; // Podstawowa wysokość
+    const summaryItems = [];
+    
+    if (netPrice) {
+      summaryItems.push(`Cena netto: ${formatPrice(netPrice)} PLN`);
+      summaryHeight += 5;
+    }
+    
+    if (transportPrice) {
+      summaryItems.push(`Cena transportu: ${formatPrice(transportPrice)} PLN`);
+      summaryHeight += 5;
+    }
+    
+    summaryItems.push(`Termin płatności: przedpłata 100% przed wysyłką / możliwy leasing`);
+    summaryItems.push(`Oferta ważna do: ${formatDate(validUntil)}`);
+    summaryHeight += 10;
+    
+    doc.rect(15, yPos, pageWidth - 30, summaryHeight, 'FD');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(textColor);
+    doc.setFont('helvetica', 'normal');
+    
+    summaryItems.forEach((item, index) => {
+      doc.text(item, 20, yPos + 6 + (index * 5));
+    });
+    
+    yPos += summaryHeight + 10;
+  } else {
+    // Jeśli brak cen, dodaj podstawowe informacje
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORMACJE', 15, yPos);
+    
+    yPos += 8;
+    
+    doc.setDrawColor(accentColor);
+    doc.setFillColor(255, 251, 235);
+    doc.rect(15, yPos, pageWidth - 30, 15, 'FD');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(textColor);
+    doc.setFont('helvetica', 'normal');
+    
+    const basicInfo = [
+      `Termin płatności: przedpłata 100% przed wysyłką / możliwy leasing`,
+      `Oferta ważna do: ${formatDate(validUntil)}`
+    ];
+    
+    basicInfo.forEach((info, index) => {
+      doc.text(info, 20, yPos + 6 + (index * 5));
+    });
+    
+    yPos += 20;
+  }
   
-  // Ramka dla podsumowania
-  doc.setDrawColor(accentColor);
-  doc.setFillColor(255, 251, 235);
-  doc.rect(20, yPos, pageWidth - 40, 50, 'FD');
+  // === STOPKA (kompaktowa) ===
   
-  doc.setFontSize(11);
-  doc.setTextColor(textColor);
-  doc.setFont('helvetica', 'normal');
-  
-  const summaryItems = [
-    `Cena netto: ${formatPrice(netPrice)} PLN`,
-    `Cena transportu: ${formatPrice(transportPrice)} PLN`,
-    `Termin płatności: przedpłata 100% przed wysyłką / możliwy leasing`,
-    `Oferta ważna do: ${formatDate(validUntil)}`
-  ];
-  
-  summaryItems.forEach((item, index) => {
-    doc.text(item, 25, yPos + 10 + (index * 8));
-  });
-  
-  // === STOPKA ===
-  
-  const footerY = pageHeight - 40;
+  const footerY = Math.max(yPos + 15, pageHeight - 25);
   
   // Linia nad stopką
   doc.setDrawColor(primaryColor);
-  doc.setLineWidth(1);
-  doc.line(20, footerY - 10, pageWidth - 20, footerY - 10);
+  doc.setLineWidth(0.5);
+  doc.line(15, footerY - 5, pageWidth - 15, footerY - 5);
   
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
   
   const footerText = [
     'W razie pytań zapraszam do kontaktu.',
-    'Z poważaniem,',
-    'Michał Seweryn'
+    'Z poważaniem, Michał Seweryn'
   ];
   
   footerText.forEach((text, index) => {
-    doc.text(text, pageWidth / 2, footerY + (index * 5), { align: 'center' });
+    doc.text(text, pageWidth / 2, footerY + (index * 4), { align: 'center' });
   });
   
   // Zapisanie i pobranie pliku
