@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, Edit, Copy, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, Edit, Copy, Trash2, Search, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import PDFQuoteGenerator from './PDFQuoteGenerator';
 
 interface CompactProductTableProps {
@@ -45,7 +46,7 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
         />
       </div>
 
-      {/* Lista produktów - zoptymalizowana pod mobile */}
+      {/* Lista produktów - kompaktowy układ bez miniaturek */}
       <div className="space-y-3">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -55,55 +56,55 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
           filteredProducts.map((product) => (
             <Card key={product.id} className="border border-gray-200 hover:shadow-md transition-shadow">
               <CardContent className="p-3 sm:p-4">
-                {/* Mobile-first layout */}
+                {/* Kompaktowy layout bez miniaturki */}
                 <div className="space-y-3">
-                  {/* Sekcja główna - zawsze widoczna */}
+                  {/* Sekcja główna */}
                   <div className="flex items-start gap-3">
-                    {/* Miniaturka - mniejsza na mobile */}
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                      {product.image || (product.images && product.images[0]) ? (
-                        <img
-                          src={product.image || product.images[0]}
-                          alt={product.model}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                          Brak
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Informacje podstawowe */}
+                    {/* Informacje podstawowe - większa przestrzeń bez miniaturki */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-stakerpol-navy text-sm sm:text-base line-clamp-2">
-                        {product.model}
-                      </h3>
+                      {/* Link do produktu - klikalny model */}
+                      <Link 
+                        to={`/product/${product.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center group"
+                      >
+                        <h3 className="font-semibold text-stakerpol-navy text-sm sm:text-base line-clamp-2 hover:underline group-hover:text-blue-600 transition-colors">
+                          {product.model}
+                        </h3>
+                        <ExternalLink className="ml-1 h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                      </Link>
                       
-                      {/* Mobile: skrócony opis, Desktop: pełny opis */}
+                      {/* Numer seryjny pod modelem */}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Nr seryjny: {product.specs.serialNumber || 'Brak'}
+                      </p>
+                      
+                      {/* Skrócony opis */}
                       <p className="text-xs sm:text-sm text-gray-600 line-clamp-1 sm:line-clamp-2 mt-1">
                         {product.shortDescription}
                       </p>
                       
-                      {/* Kluczowe informacje - zawsze widoczne */}
+                      {/* Kluczowe informacje */}
                       <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-500 mt-2">
-                        <span className="truncate">Nr: {product.specs.serialNumber || 'Brak'}</span>
                         <span>Rok: {product.specs.productionYear || 'Brak'}</span>
                         <span className="hidden sm:inline">Stan: {product.specs.condition || 'Brak'}</span>
+                        <span className="hidden sm:inline">
+                          Godziny: {product.specs.workingHours ? `${product.specs.workingHours} mh` : 'Brak'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Akcje - responsywne */}
+                  {/* Akcje - neutralne style zgodnie z instrukcją */}
                   <div className="flex items-center justify-between gap-2">
-                    {/* Przyciski akcji - mniejsze na mobile */}
                     <div className="flex items-center gap-1 sm:gap-2">
                       <PDFQuoteGenerator product={product} />
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => toggleExpanded(product.id)}
-                        className="text-gray-600 px-2 sm:px-3"
+                        className="text-gray-600 px-2 sm:px-3 hover:bg-gray-100"
                         title="Pokaż szczegóły"
                       >
                         {expandedProduct === product.id ? (
@@ -113,28 +114,28 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
                         )}
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => onEdit(product)}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50 px-2 sm:px-3"
+                        className="text-blue-600 hover:bg-blue-50 px-2 sm:px-3"
                         title="Edytuj"
                       >
                         <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => onCopy(product)}
-                        className="text-green-600 border-green-200 hover:bg-green-50 px-2 sm:px-3"
+                        className="text-green-600 hover:bg-green-50 px-2 sm:px-3"
                         title="Kopiuj"
                       >
                         <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => onDelete(product)}
-                        className="text-red-600 border-red-200 hover:bg-red-50 px-2 sm:px-3"
+                        className="text-red-600 hover:bg-red-50 px-2 sm:px-3"
                         title="Usuń"
                       >
                         <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -142,7 +143,7 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
                     </div>
                   </div>
 
-                  {/* Rozszerzone szczegóły - responsywne */}
+                  {/* Rozszerzone szczegóły */}
                   {expandedProduct === product.id && (
                     <div className="pt-3 border-t border-gray-200">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
@@ -184,7 +185,7 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
         )}
       </div>
 
-      {/* Podsumowanie - lepsze na mobile */}
+      {/* Podsumowanie */}
       <div className="text-xs sm:text-sm text-gray-600 text-center py-2 bg-gray-50 rounded-lg">
         Wyświetlono {filteredProducts.length} z {products.length} produktów
       </div>

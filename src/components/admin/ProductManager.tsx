@@ -1,10 +1,12 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, FileText, Image } from 'lucide-react';
 import ProductList from './ProductList';
 import ProductDetailsModal from './ProductDetailsModal';
 import { Product } from '@/types';
+import { exportProductListToPDF, exportProductListToJPG } from '@/utils/listExporter';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductManagerProps {
   // State
@@ -41,6 +43,9 @@ const ProductManager = ({
   updateProduct
 }: ProductManagerProps) => {
   const [refreshing, setRefreshing] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [exportingJPG, setExportingJPG] = useState(false);
+  const { toast } = useToast();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -49,6 +54,64 @@ const ProductManager = ({
       setRefreshing(false);
       window.location.reload();
     }, 500);
+  };
+
+  const handleExportPDF = async () => {
+    if (products.length === 0) {
+      toast({
+        title: "Brak produktów",
+        description: "Nie ma produktów do eksportu",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setExportingPDF(true);
+    try {
+      await exportProductListToPDF(products);
+      toast({
+        title: "Sukces!",
+        description: `Lista magazynowa PDF została wygenerowana (${products.length} produktów)`,
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Błąd eksportu",
+        description: "Nie udało się wygenerować listy PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
+  const handleExportJPG = async () => {
+    if (products.length === 0) {
+      toast({
+        title: "Brak produktów",
+        description: "Nie ma produktów do eksportu",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setExportingJPG(true);
+    try {
+      await exportProductListToJPG(products);
+      toast({
+        title: "Sukces!",
+        description: `Lista magazynowa JPG została wygenerowana (${products.length} produktów)`,
+      });
+    } catch (error) {
+      console.error('Error exporting JPG:', error);
+      toast({
+        title: "Błąd eksportu",
+        description: "Nie udało się wygenerować listy JPG",
+        variant: "destructive"
+      });
+    } finally {
+      setExportingJPG(false);
+    }
   };
 
   const handleSave = (product: Product, images: string[]) => {
@@ -85,7 +148,27 @@ const ProductManager = ({
           </p>
         </div>
         
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+          <Button
+            onClick={handleExportPDF}
+            variant="outline"
+            size="sm"
+            disabled={exportingPDF || products.length === 0}
+            className="flex-1 sm:flex-initial"
+          >
+            <FileText className={`mr-2 h-4 w-4 ${exportingPDF ? 'animate-pulse' : ''}`} />
+            {exportingPDF ? 'Eksport PDF...' : 'Eksport PDF'}
+          </Button>
+          <Button
+            onClick={handleExportJPG}
+            variant="outline"
+            size="sm"
+            disabled={exportingJPG || products.length === 0}
+            className="flex-1 sm:flex-initial"
+          >
+            <Image className={`mr-2 h-4 w-4 ${exportingJPG ? 'animate-pulse' : ''}`} />
+            {exportingJPG ? 'Eksport JPG...' : 'Eksport JPG'}
+          </Button>
           <Button
             onClick={handleRefresh}
             variant="outline"
