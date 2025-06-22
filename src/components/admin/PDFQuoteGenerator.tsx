@@ -11,6 +11,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowUp } from 'lucide-react';
 import { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -34,12 +42,18 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   
+  // Nowe pola biznesowe
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [leasingAvailable, setLeasingAvailable] = useState(false);
+  const [additionalNotes, setAdditionalNotes] = useState('');
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
     // Sprawdź czy przynajmniej jedno pole jest wypełnione
-    const hasAnyData = netPrice || transportPrice || clientName || companyName || email || phone || address;
+    const hasAnyData = netPrice || transportPrice || clientName || companyName || 
+                      email || phone || address || paymentMethod || leasingAvailable || additionalNotes;
     
     if (!hasAnyData) {
       toast({
@@ -90,12 +104,15 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
         companyName: companyName.trim() || undefined,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        address: address.trim() || undefined
+        address: address.trim() || undefined,
+        paymentMethod: paymentMethod || undefined,
+        leasingAvailable: leasingAvailable || undefined,
+        additionalNotes: additionalNotes.trim() || undefined
       });
 
       toast({
         title: "Sukces!",
-        description: "Oferta PDF została wygenerowana i pobrana",
+        description: "Profesjonalna oferta PDF została wygenerowana i pobrana",
       });
 
       // Reset formularza i zamknij dialog
@@ -106,6 +123,9 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
       setEmail('');
       setPhone('');
       setAddress('');
+      setPaymentMethod('');
+      setLeasingAvailable(false);
+      setAdditionalNotes('');
       setIsOpen(false);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -126,15 +146,15 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
           variant="outline"
           size="sm"
           className="text-blue-600 border-blue-200 hover:bg-blue-50 px-2 sm:px-3"
-          title="Wygeneruj ofertę PDF"
+          title="Wygeneruj profesjonalną ofertę PDF"
         >
           <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl mx-4 w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl mx-4 w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-stakerpol-navy text-base sm:text-lg">
-            Generuj ofertę PDF
+            Generuj profesjonalną ofertę PDF
           </DialogTitle>
           <p className="text-sm text-gray-600 mt-1">
             {product.model}
@@ -147,8 +167,8 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
         <div className="space-y-6 py-4">
           {/* Sekcja: Dane klienta */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2">
-              Dane klienta (opcjonalne)
+            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2 flex items-center gap-2">
+              👤 Dane klienta (opcjonalne)
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -214,10 +234,10 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
             </div>
           </div>
 
-          {/* Sekcja: Ceny */}
+          {/* Sekcja: Warunki handlowe */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2">
-              Ceny (opcjonalne)
+            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2 flex items-center gap-2">
+              💰 Warunki handlowe (opcjonalne)
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -248,6 +268,53 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
                 />
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod" className="text-sm">Forma płatności</Label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wybierz formę płatności" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="przedplata">Przedpłata 100%</SelectItem>
+                    <SelectItem value="przelew">Przelew tradycyjny</SelectItem>
+                    <SelectItem value="leasing">Leasing</SelectItem>
+                    <SelectItem value="raty">Płatność ratalna</SelectItem>
+                    <SelectItem value="negocjacja">Do negocjacji</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 flex items-end">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="leasing" 
+                    checked={leasingAvailable}
+                    onCheckedChange={(checked) => setLeasingAvailable(checked as boolean)}
+                  />
+                  <Label htmlFor="leasing" className="text-sm">Leasing możliwy</Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sekcja: Uwagi dodatkowe */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-stakerpol-navy border-b pb-2 flex items-center gap-2">
+              📝 Uwagi dodatkowe (opcjonalne)
+            </h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="additionalNotes" className="text-sm">Dodatkowe informacje</Label>
+              <Textarea
+                id="additionalNotes"
+                placeholder="np. Specjalne warunki, terminy dostawy, gwarancje..."
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                className="w-full resize-none"
+                rows={3}
+              />
+            </div>
           </div>
 
           {/* Przyciski akcji */}
@@ -265,7 +332,7 @@ const PDFQuoteGenerator = ({ product }: PDFQuoteGeneratorProps) => {
               disabled={isGenerating}
               className="cta-button w-full sm:w-auto"
             >
-              {isGenerating ? 'Generowanie...' : 'Wygeneruj PDF'}
+              {isGenerating ? 'Generowanie...' : 'Wygeneruj profesjonalną ofertę PDF'}
             </Button>
           </div>
         </div>

@@ -11,6 +11,9 @@ interface QuoteData {
   email?: string;
   phone?: string;
   address?: string;
+  paymentMethod?: string;
+  leasingAvailable?: boolean;
+  additionalNotes?: string;
 }
 
 // Funkcja do pobierania i liczenia numerów ofert
@@ -45,80 +48,114 @@ const formatPrice = (price: number): string => {
 };
 
 export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
-  const { product, netPrice, transportPrice, clientName, companyName, email, phone, address } = data;
+  const { 
+    product, 
+    netPrice, 
+    transportPrice, 
+    clientName, 
+    companyName, 
+    email, 
+    phone, 
+    address,
+    paymentMethod,
+    leasingAvailable,
+    additionalNotes
+  } = data;
   
   // Tworzenie dokumentu PDF
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
-  // Kolory zgodne z identyfikacją wizualną
-  const primaryColor = '#1e3a8a'; // stakerpol-navy
-  const accentColor = '#f97316'; // stakerpol-orange
-  const textColor = '#374151'; // gray-700
-  const lightGray = '#f3f4f6'; // gray-100
+  // Kolory zgodne z identyfikacją wizualną (ulepszone)
+  const primaryColor = '#002B5B'; // Ciemny granat
+  const accentColor = '#1D4ED8'; // Niebieski akcent
+  const textColor = '#374151'; // Szary tekst
+  const lightGray = '#F3F4F6'; // Jasne tło
+  const orangeAccent = '#f97316'; // Pomarańczowy Stakerpol
   
   // Daty
   const today = new Date();
   const validUntil = new Date();
-  validUntil.setDate(today.getDate() + 30);
+  validUntil.setDate(today.getDate() + 14); // Ważna 14 dni
   
   const quoteNumber = getNextQuoteNumber();
   
-  // === NAGŁÓWEK (kompaktowy) ===
+  // === NAGŁÓWEK FIRMY (dwukolumnowy układ) ===
   
-  // Data w prawym górnym rogu
+  // Lewa strona - dane firmy
+  doc.setFontSize(14);
+  doc.setTextColor(primaryColor);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FHU STAKERPOL', 15, 20);
+  
   doc.setFontSize(9);
   doc.setTextColor(textColor);
-  doc.text(`Data: ${formatDate(today)}`, pageWidth - 15, 15, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.text('ul. Szewska 6, 32-043 Skała', 15, 25);
+  doc.text('Tel: +48 694 133 592', 15, 29);
+  doc.text('E-mail: info@stakerpol.pl', 15, 33);
+  doc.text('www.stakerpol.pl', 15, 37);
   
-  // Tytuł oferty - wyśrodkowany
+  // Prawa strona - numer oferty i daty
   doc.setFontSize(16);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(`OFERTA ${quoteNumber}`, pageWidth / 2, 25, { align: 'center' });
+  doc.text(`OFERTA ${quoteNumber}`, pageWidth - 15, 20, { align: 'right' });
   
-  // Linia pod tytułem
+  doc.setFontSize(9);
+  doc.setTextColor(textColor);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Data wystawienia: ${formatDate(today)}`, pageWidth - 15, 27, { align: 'right' });
+  doc.text(`Ważna do: ${formatDate(validUntil)}`, pageWidth - 15, 31, { align: 'right' });
+  
+  // Linia oddzielająca nagłówek
   doc.setDrawColor(accentColor);
   doc.setLineWidth(1.5);
-  doc.line(15, 32, pageWidth - 15, 32);
+  doc.line(15, 45, pageWidth - 15, 45);
   
-  // === DANE KLIENTA (tylko wypełnione pola) ===
+  let yPos = 55;
   
-  let yPos = 45;
+  // === DANE KLIENTA (jeśli wypełnione) ===
   
-  // Sprawdź czy są jakiekolwiek dane klienta
   const hasClientData = clientName || companyName || email || phone || address;
   
   if (hasClientData) {
-    doc.setFontSize(11);
+    // Nagłówek sekcji z ikoną
+    doc.setFontSize(12);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('Dla:', 15, yPos);
+    doc.text('👤 DLA KLIENTA', 15, yPos);
+    
+    // Tło sekcji
+    doc.setFillColor(243, 244, 246);
+    doc.rect(15, yPos + 2, pageWidth - 30, 18, 'F');
     
     doc.setTextColor(textColor);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     
-    let clientYPos = yPos;
+    let clientYPos = yPos + 8;
     
     if (clientName) {
-      doc.text(clientName, 25, clientYPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(clientName, 20, clientYPos);
+      doc.setFont('helvetica', 'normal');
       clientYPos += 4;
     }
     
     if (companyName) {
-      doc.text(companyName, 25, clientYPos);
+      doc.text(companyName, 20, clientYPos);
       clientYPos += 4;
     }
     
-    if (email) {
-      doc.text(`E-mail: ${email}`, 25, clientYPos);
-      clientYPos += 4;
-    }
+    // Dane kontaktowe w jednej linii jeśli się mieszczą
+    let contactInfo = [];
+    if (email) contactInfo.push(`E-mail: ${email}`);
+    if (phone) contactInfo.push(`Tel: ${phone}`);
     
-    if (phone) {
-      doc.text(`Tel: ${phone}`, 25, clientYPos);
+    if (contactInfo.length > 0) {
+      doc.text(contactInfo.join(' | '), 20, clientYPos);
       clientYPos += 4;
     }
     
@@ -126,52 +163,30 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
       const addressLines = address.split('\n');
       addressLines.forEach((line, index) => {
         if (line.trim()) {
-          doc.text(line.trim(), 25, clientYPos + (index * 4));
+          doc.text(line.trim(), 20, clientYPos + (index * 3));
         }
       });
-      clientYPos += addressLines.length * 4;
+      clientYPos += addressLines.length * 3;
     }
     
-    yPos = clientYPos + 8;
+    yPos = Math.max(yPos + 22, clientYPos + 5);
   }
   
-  // Od: (kompaktowe)
-  doc.setFontSize(11);
-  doc.setTextColor(primaryColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Od:', 15, yPos);
-  
-  doc.setTextColor(textColor);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  
-  const companyInfo = [
-    'FHU Stakerpol, ul. Szewska 6, 32-043 Skała',
-    'E-mail: info@stakerpol.pl, Tel. +48 694 133 592',
-    'www.stakerpol.pl'
-  ];
-  
-  companyInfo.forEach((info, index) => {
-    doc.text(info, 25, yPos + 4 + (index * 4));
-  });
-  
-  yPos += 20;
-  
-  // === PRODUKT (kompaktowy) ===
+  // === SEKCJA PRODUKTU ===
   
   doc.setFontSize(12);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('OFEROWANY PRODUKT', 15, yPos);
+  doc.text('🛠 OFEROWANY PRODUKT', 15, yPos);
   
   yPos += 8;
   
-  // Ramka dla produktu - mniejsza
-  doc.setDrawColor(primaryColor);
-  doc.setFillColor(lightGray);
+  // Ramka produktu z gradientem wizualnym
+  doc.setDrawColor(accentColor);
+  doc.setFillColor(230, 240, 255);
   doc.rect(15, yPos, pageWidth - 30, 20, 'FD');
   
-  // Model produktu - wyśrodkowany
+  // Model produktu - wyśrodkowany i wyróżniony
   doc.setFontSize(14);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
@@ -179,43 +194,41 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   yPos += 28;
   
-  // === SPECYFIKACJA TECHNICZNA (kompaktowa tabela) ===
+  // === SPECYFIKACJA TECHNICZNA (kafelkowy układ) ===
   
   doc.setFontSize(11);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('SPECYFIKACJA TECHNICZNA:', 15, yPos);
+  doc.text('📋 SPECYFIKACJA TECHNICZNA', 15, yPos);
   
   yPos += 6;
   
-  // Przygotowanie danych specyfikacji - tylko określone pola
+  // Przygotowanie danych specyfikacji (wybrane pola)
   const specs = [
-    { label: 'Model', value: product.model },
-    { label: 'Numer seryjny', value: product.specs.serialNumber },
-    { label: 'Rok produkcji', value: product.specs.productionYear },
-    { label: 'Udźwig przy podnoszeniu masztu [kg]', value: product.specs.mastLiftingCapacity },
-    { label: 'Udźwig przy podnoszeniu wstępnym [kg]', value: product.specs.preliminaryLiftingCapacity },
-    { label: 'Godziny pracy [mh]', value: product.specs.workingHours },
-    { label: 'Wysokość podnoszenia [mm]', value: product.specs.liftHeight },
-    { label: 'Wysokość konstrukcyjna [mm]', value: product.specs.minHeight },
-    { label: 'Wstępne podnoszenie', value: product.specs.preliminaryLifting },
-    { label: 'Wymiary (długość / szerokość) [mm]', value: product.specs.dimensions },
-    { label: 'Składany podest dla operatora', value: product.specs.operatorPlatform }
+    { label: 'Numer seryjny', value: product.specs.serialNumber, icon: '#️⃣' },
+    { label: 'Rok produkcji', value: product.specs.productionYear, icon: '📅' },
+    { label: 'Udźwig (maszt)', value: product.specs.mastLiftingCapacity ? `${product.specs.mastLiftingCapacity} kg` : '', icon: '⚖️' },
+    { label: 'Udźwig (wstępny)', value: product.specs.preliminaryLiftingCapacity ? `${product.specs.preliminaryLiftingCapacity} kg` : '', icon: '📊' },
+    { label: 'Godziny pracy', value: product.specs.workingHours ? `${product.specs.workingHours} mh` : '', icon: '⏰' },
+    { label: 'Wys. podnoszenia', value: product.specs.liftHeight ? `${product.specs.liftHeight} mm` : '', icon: '📏' },
+    { label: 'Wys. konstrukcyjna', value: product.specs.minHeight ? `${product.specs.minHeight} mm` : '', icon: '📐' },
+    { label: 'Wymiary', value: product.specs.dimensions, icon: '📦' },
+    { label: 'Podest operatora', value: product.specs.operatorPlatform, icon: '🧑\u200D💼' }
   ].filter(spec => spec.value && spec.value.trim() !== '');
   
-  // Kompaktowa tabela specyfikacji
+  // Kompaktowa tabela specyfikacji z lepszą stylizacją
   doc.setFontSize(8);
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
   
   const tableStartY = yPos;
-  const cellHeight = 4;
-  const col1Width = 70;
+  const cellHeight = 4.5;
+  const col1Width = 75;
   
   specs.forEach((spec, index) => {
     const currentY = tableStartY + (index * cellHeight);
     
-    // Tło dla parzystych wierszy
+    // Przemienne tło dla lepszej czytelności
     if (index % 2 === 0) {
       doc.setFillColor(249, 250, 251);
       doc.rect(15, currentY - 1, pageWidth - 30, cellHeight, 'F');
@@ -224,13 +237,13 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
     // Linie tabeli
     doc.setDrawColor(229, 231, 235);
     doc.line(15, currentY - 1, pageWidth - 15, currentY - 1);
-    doc.line(85, currentY - 1, 85, currentY + cellHeight - 1);
+    doc.line(90, currentY - 1, 90, currentY + cellHeight - 1);
     
-    // Tekst
+    // Tekst z ikonami
     doc.setFont('helvetica', 'bold');
-    doc.text(spec.label + ':', 17, currentY + 2);
+    doc.text(`${spec.label}:`, 17, currentY + 2.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(spec.value, 87, currentY + 2);
+    doc.text(spec.value, 92, currentY + 2.5);
   });
   
   // Dolna linia tabeli
@@ -238,98 +251,122 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   yPos = tableStartY + (specs.length * cellHeight) + 10;
   
-  // === PODSUMOWANIE FINANSOWE (tylko jeśli są ceny) ===
+  // === SEKCJA CENOWA I WARUNKI (kafelkowy układ) ===
   
-  if (netPrice || transportPrice) {
+  const hasPricing = netPrice || transportPrice;
+  const hasBusinessTerms = paymentMethod || leasingAvailable;
+  
+  if (hasPricing || hasBusinessTerms) {
     doc.setFontSize(12);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('PODSUMOWANIE', 15, yPos);
+    doc.text('💰 WARUNKI HANDLOWE', 15, yPos);
     
     yPos += 8;
     
-    // Ramka dla podsumowania - mniejsza
-    doc.setDrawColor(accentColor);
+    // Kafelkowe tło dla sekcji cenowej
+    doc.setDrawColor(orangeAccent);
     doc.setFillColor(255, 251, 235);
     
-    let summaryHeight = 8; // Podstawowa wysokość
-    const summaryItems = [];
+    let sectionHeight = 8;
+    const businessItems = [];
     
     if (netPrice) {
-      summaryItems.push(`Cena netto: ${formatPrice(netPrice)} PLN`);
-      summaryHeight += 5;
+      businessItems.push(`Cena netto: ${formatPrice(netPrice)} PLN`);
+      sectionHeight += 5;
     }
     
     if (transportPrice) {
-      summaryItems.push(`Cena transportu: ${formatPrice(transportPrice)} PLN`);
-      summaryHeight += 5;
+      businessItems.push(`Transport: ${formatPrice(transportPrice)} PLN`);
+      sectionHeight += 5;
     }
     
-    summaryItems.push(`Termin płatności: przedpłata 100% przed wysyłką / możliwy leasing`);
-    summaryItems.push(`Oferta ważna do: ${formatDate(validUntil)}`);
-    summaryHeight += 10;
+    if (paymentMethod) {
+      businessItems.push(`Forma płatności: ${paymentMethod}`);
+      sectionHeight += 5;
+    }
     
-    doc.rect(15, yPos, pageWidth - 30, summaryHeight, 'FD');
+    if (leasingAvailable) {
+      businessItems.push('✅ Możliwość leasingu');
+      sectionHeight += 5;
+    }
+    
+    businessItems.push(`Ważność oferty: ${formatDate(validUntil)}`);
+    sectionHeight += 5;
+    
+    doc.rect(15, yPos, pageWidth - 30, sectionHeight, 'FD');
     
     doc.setFontSize(10);
     doc.setTextColor(textColor);
     doc.setFont('helvetica', 'normal');
     
-    summaryItems.forEach((item, index) => {
+    businessItems.forEach((item, index) => {
+      if (item.includes('Cena netto') || item.includes('Transport')) {
+        doc.setFont('helvetica', 'bold');
+      } else {
+        doc.setFont('helvetica', 'normal');
+      }
       doc.text(item, 20, yPos + 6 + (index * 5));
     });
     
-    yPos += summaryHeight + 10;
-  } else {
-    // Jeśli brak cen, dodaj podstawowe informacje
-    doc.setFontSize(12);
+    yPos += sectionHeight + 10;
+  }
+  
+  // === UWAGI DODATKOWE (jeśli są) ===
+  
+  if (additionalNotes && additionalNotes.trim()) {
+    doc.setFontSize(11);
     doc.setTextColor(primaryColor);
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMACJE', 15, yPos);
+    doc.text('📝 UWAGI DODATKOWE', 15, yPos);
     
-    yPos += 8;
+    yPos += 6;
     
-    doc.setDrawColor(accentColor);
-    doc.setFillColor(255, 251, 235);
-    doc.rect(15, yPos, pageWidth - 30, 15, 'FD');
+    doc.setFillColor(245, 245, 245);
+    doc.rect(15, yPos, pageWidth - 30, 15, 'F');
     
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(textColor);
     doc.setFont('helvetica', 'normal');
     
-    const basicInfo = [
-      `Termin płatności: przedpłata 100% przed wysyłką / możliwy leasing`,
-      `Oferta ważna do: ${formatDate(validUntil)}`
-    ];
-    
-    basicInfo.forEach((info, index) => {
-      doc.text(info, 20, yPos + 6 + (index * 5));
+    // Podział długiego tekstu na linie
+    const noteLines = doc.splitTextToSize(additionalNotes, pageWidth - 40);
+    noteLines.forEach((line: string, index: number) => {
+      doc.text(line, 20, yPos + 5 + (index * 4));
     });
     
     yPos += 20;
   }
   
-  // === STOPKA (kompaktowa) ===
+  // === STOPKA KONTAKTOWA ===
   
-  const footerY = Math.max(yPos + 15, pageHeight - 25);
+  const footerY = Math.max(yPos + 15, pageHeight - 35);
   
   // Linia nad stopką
   doc.setDrawColor(primaryColor);
   doc.setLineWidth(0.5);
   doc.line(15, footerY - 5, pageWidth - 15, footerY - 5);
   
-  doc.setFontSize(9);
+  // Dwukolumnowa stopka
+  doc.setFontSize(10);
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'normal');
   
-  const footerText = [
-    'W razie pytań zapraszam do kontaktu.',
-    'Z poważaniem, Michał Seweryn'
-  ];
+  // Lewa strona - zachęta do kontaktu
+  doc.text('W razie pytań zapraszam do kontaktu:', 15, footerY + 2);
+  doc.text('Jesteśmy do Państwa dyspozycji!', 15, footerY + 7);
   
-  footerText.forEach((text, index) => {
-    doc.text(text, pageWidth / 2, footerY + (index * 4), { align: 'center' });
-  });
+  // Prawa strona - dane kontaktowe
+  doc.setFont('helvetica', 'bold');
+  doc.text('Michał Seweryn', pageWidth - 15, footerY + 2, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.text('+48 694 133 592', pageWidth - 15, footerY + 7, { align: 'right' });
+  doc.text('info@stakerpol.pl', pageWidth - 15, footerY + 12, { align: 'right' });
+  
+  // Mała stopka z URL
+  doc.setFontSize(8);
+  doc.setTextColor('#888888');
+  doc.text('www.stakerpol.pl', pageWidth / 2, footerY + 18, { align: 'center' });
   
   // Zapisanie i pobranie pliku
   const fileName = `Oferta_${quoteNumber.replace('/', '_')}_${product.model.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
