@@ -17,7 +17,7 @@ export const usePublicSupabaseProducts = () => {
       console.log('Fetching products for public pages...');
       const startTime = performance.now();
       
-      // Fetch products - now accessible to all users thanks to public RLS policy
+      // Fetch products - accessible to all users thanks to "Anyone can view products" RLS policy
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -28,7 +28,7 @@ export const usePublicSupabaseProducts = () => {
         throw productsError;
       }
 
-      // Fetch product images - now accessible to all users thanks to public RLS policy
+      // Fetch product images - accessible to all users thanks to "Anyone can view product images" RLS policy
       const { data: imagesData, error: imagesError } = await supabase
         .from('product_images')
         .select('*')
