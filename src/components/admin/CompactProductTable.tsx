@@ -3,10 +3,17 @@ import { useState } from 'react';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, Edit, Copy, Trash2, Search, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Edit, Copy, Trash2, Search, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PDFQuoteGenerator from './PDFQuoteGenerator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface CompactProductTableProps {
   products: Product[];
@@ -17,7 +24,7 @@ interface CompactProductTableProps {
 
 const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProductTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const filteredProducts = products.filter(product =>
     product.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -25,13 +32,17 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
     product.specs.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const toggleExpanded = (productId: string) => {
-    setExpandedProduct(expandedProduct === productId ? null : productId);
+  const toggleRowExpansion = (productId: string) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(productId)) {
+      newExpandedRows.delete(productId);
+    } else {
+      newExpandedRows.add(productId);
+    }
+    setExpandedRows(newExpandedRows);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pl-PL');
-  };
+  const isRowExpanded = (productId: string) => expandedRows.has(productId);
 
   return (
     <div className="space-y-4">
@@ -46,148 +57,192 @@ const CompactProductTable = ({ products, onEdit, onCopy, onDelete }: CompactProd
         />
       </div>
 
-      {/* Lista produktów - kompaktowy układ bez miniaturek */}
-      <div className="space-y-3">
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            {searchTerm ? 'Nie znaleziono produktów odpowiadających wyszukiwaniu' : 'Brak produktów do wyświetlenia'}
-          </div>
-        ) : (
-          filteredProducts.map((product) => (
-            <Card key={product.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4">
-                {/* Kompaktowy layout bez miniaturki */}
-                <div className="space-y-3">
-                  {/* Sekcja główna */}
-                  <div className="flex items-start gap-3">
-                    {/* Informacje podstawowe - większa przestrzeń bez miniaturki */}
-                    <div className="flex-1 min-w-0">
-                      {/* Link do produktu - klikalny model */}
-                      <Link 
-                        to={`/product/${product.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center group"
-                      >
-                        <h3 className="font-semibold text-stakerpol-navy text-sm sm:text-base line-clamp-2 hover:underline group-hover:text-blue-600 transition-colors">
-                          {product.model}
-                        </h3>
-                        <ExternalLink className="ml-1 h-3 w-3 text-gray-400 group-hover:text-blue-600" />
-                      </Link>
-                      
-                      {/* Numer seryjny pod modelem */}
-                      <p className="text-xs text-gray-500 mt-1">
-                        Nr seryjny: {product.specs.serialNumber || 'Brak'}
-                      </p>
-                      
-                      {/* Skrócony opis */}
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-1 sm:line-clamp-2 mt-1">
-                        {product.shortDescription}
-                      </p>
-                      
-                      {/* Kluczowe informacje */}
-                      <div className="flex flex-wrap gap-2 sm:gap-4 text-xs text-gray-500 mt-2">
-                        <span>Rok: {product.specs.productionYear || 'Brak'}</span>
-                        <span className="hidden sm:inline">Stan: {product.specs.condition || 'Brak'}</span>
-                        <span className="hidden sm:inline">
-                          Godziny: {product.specs.workingHours ? `${product.specs.workingHours} mh` : 'Brak'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Akcje - neutralne style zgodnie z instrukcją */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <PDFQuoteGenerator product={product} />
+      {/* Kompaktowa tabela produktów */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8"></TableHead>
+              <TableHead>Model</TableHead>
+              <TableHead className="text-right">Akcje</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                  {searchTerm ? 'Nie znaleziono produktów odpowiadających wyszukiwaniu' : 'Brak produktów do wyświetlenia'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredProducts.map((product) => (
+                <>
+                  {/* Główny wiersz produktu */}
+                  <TableRow key={product.id} className="hover:bg-gray-50/50">
+                    <TableCell className="w-8">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleExpanded(product.id)}
-                        className="text-gray-600 px-2 sm:px-3 hover:bg-gray-100"
-                        title="Pokaż szczegóły"
+                        onClick={() => toggleRowExpansion(product.id)}
+                        className="h-6 w-6 p-0 hover:bg-gray-100"
                       >
-                        {expandedProduct === product.id ? (
-                          <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                        {isRowExpanded(product.id) ? (
+                          <ChevronUp className="h-3 w-3" />
                         ) : (
-                          <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <ChevronDown className="h-3 w-3" />
                         )}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(product)}
-                        className="text-blue-600 hover:bg-blue-50 px-2 sm:px-3"
-                        title="Edytuj"
-                      >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onCopy(product)}
-                        className="text-green-600 hover:bg-green-50 px-2 sm:px-3"
-                        title="Kopiuj"
-                      >
-                        <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(product)}
-                        className="text-red-600 hover:bg-red-50 px-2 sm:px-3"
-                        title="Usuń"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Rozszerzone szczegóły */}
-                  {expandedProduct === product.id && (
-                    <div className="pt-3 border-t border-gray-200">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Data utworzenia:</span>
-                          <span className="sm:ml-2 text-gray-600">{formatDate(product.createdAt)}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Ostatnia modyfikacja:</span>
-                          <span className="sm:ml-2 text-gray-600">{formatDate(product.updatedAt)}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Udźwig maszt:</span>
-                          <span className="sm:ml-2 text-gray-600">{product.specs.mastLiftingCapacity || 'Brak'}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Godziny pracy:</span>
-                          <span className="sm:ml-2 text-gray-600">{product.specs.workingHours || 'Brak'}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Wysokość podnoszenia:</span>
-                          <span className="sm:ml-2 text-gray-600">{product.specs.liftHeight || 'Brak'}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center">
-                          <span className="font-medium text-gray-700">Bateria:</span>
-                          <span className="sm:ml-2 text-gray-600">{product.specs.battery || 'Brak'}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:col-span-2 lg:col-span-1">
-                          <span className="font-medium text-gray-700">Stan:</span>
-                          <span className="sm:ml-2 text-gray-600">{product.specs.condition || 'Brak'}</span>
-                        </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="space-y-1">
+                        {/* Link do produktu - poprawiony z /product/ na /products/ */}
+                        <Link 
+                          to={`/products/${product.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center group"
+                        >
+                          <h3 className="font-semibold text-stakerpol-navy text-sm hover:underline group-hover:text-blue-600 transition-colors">
+                            {product.model}
+                          </h3>
+                          <ExternalLink className="ml-1 h-3 w-3 text-gray-400 group-hover:text-blue-600" />
+                        </Link>
+                        
+                        {/* Numer seryjny pod modelem */}
+                        <p className="text-xs text-gray-500">
+                          Nr seryjny: {product.specs.serialNumber || 'Brak'}
+                        </p>
                       </div>
-                    </div>
+                    </TableCell>
+                    
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <PDFQuoteGenerator product={product} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(product)}
+                          className="text-blue-600 hover:bg-blue-50 h-8 w-8 p-0"
+                          title="Edytuj"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onCopy(product)}
+                          className="text-green-600 hover:bg-green-50 h-8 w-8 p-0"
+                          title="Kopiuj"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(product)}
+                          className="text-red-600 hover:bg-red-50 h-8 w-8 p-0"
+                          title="Usuń"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Rozwinięte szczegóły - tabela w tabeli */}
+                  {isRowExpanded(product.id) && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="p-0">
+                        <div className="px-4 py-3 bg-gray-50/30 border-t">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Rok produkcji
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.productionYear || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Udźwig maszt
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.mastLiftingCapacity || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Godziny pracy
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.workingHours ? `${product.specs.workingHours} mh` : 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Wysokość podnoszenia
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.liftHeight || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Stan
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.condition || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Bateria
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.battery || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Maszt
+                              </span>
+                              <p className="text-gray-900">
+                                {product.specs.mast || 'Brak danych'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                Opis skrócony
+                              </span>
+                              <p className="text-gray-900 text-xs leading-relaxed">
+                                {product.shortDescription || 'Brak opisu'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+                </>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Podsumowanie */}
-      <div className="text-xs sm:text-sm text-gray-600 text-center py-2 bg-gray-50 rounded-lg">
+      <div className="text-xs text-gray-600 text-center py-2 bg-gray-50 rounded-lg">
         Wyświetlono {filteredProducts.length} z {products.length} produktów
+        {expandedRows.size > 0 && ` • Rozwinięto ${expandedRows.size} wierszy`}
       </div>
     </div>
   );
