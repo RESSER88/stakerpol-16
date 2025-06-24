@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,16 @@ interface ModernSpecificationsTableProps {
 const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTableProps) => {
   const [showExtended, setShowExtended] = useState(false);
   const t = useTranslation(language);
+
+  const handleToggleSpecs = () => {
+    const newShowExtended = !showExtended;
+    setShowExtended(newShowExtended);
+    
+    // Auto-scroll to top when expanding specifications
+    if (newShowExtended) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // Main specifications (always visible)
   const mainSpecs = [
@@ -83,7 +92,7 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
           <div className="text-center">
             <Button
               variant="outline"
-              onClick={() => setShowExtended(!showExtended)}
+              onClick={handleToggleSpecs}
               className="flex items-center gap-2 text-stakerpol-navy border-stakerpol-navy hover:bg-stakerpol-navy hover:text-white transition-all duration-300"
             >
               {showExtended ? (
