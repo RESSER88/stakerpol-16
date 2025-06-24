@@ -17,6 +17,26 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
   const [showExtended, setShowExtended] = useState(false);
   const t = useTranslation(language);
 
+  // Function to format values with appropriate units
+  const formatValueWithUnit = (value: string | undefined, specType: string): string => {
+    if (!value || value.trim() === '') return '';
+    
+    const trimmedValue = value.trim();
+    
+    switch (specType) {
+      case 'mastLiftingCapacity':
+      case 'preliminaryLiftingCapacity':
+        return `${trimmedValue} kg`;
+      case 'workingHours':
+        return `${trimmedValue} mth`;
+      case 'liftHeight':
+      case 'minHeight':
+        return `${trimmedValue} mm`;
+      default:
+        return trimmedValue;
+    }
+  };
+
   const handleToggleSpecs = () => {
     const newShowExtended = !showExtended;
     setShowExtended(newShowExtended);
@@ -27,29 +47,30 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
     }
   };
 
-  // Main specifications (always visible) - removed liftHeight
+  // Main specifications (always visible) - przywrócono liftHeight
   const mainSpecs = [
-    { label: t('model'), value: product.model },
-    { label: t('serialNumber'), value: product.specs.serialNumber },
-    { label: t('productionYear'), value: product.specs.productionYear },
-    { label: t('mastLiftingCapacity'), value: product.specs.mastLiftingCapacity },
-    { label: t('preliminaryLiftingCapacity'), value: product.specs.preliminaryLiftingCapacity },
-    { label: t('workingHours'), value: product.specs.workingHours },
-    { label: t('minHeight'), value: product.specs.minHeight },
-    { label: t('preliminaryLifting'), value: product.specs.preliminaryLifting },
-    { label: t('battery'), value: product.specs.battery },
-    { label: t('condition'), value: product.specs.condition }
+    { label: t('model'), value: product.model, specType: 'model' },
+    { label: t('serialNumber'), value: product.specs.serialNumber, specType: 'serialNumber' },
+    { label: t('productionYear'), value: product.specs.productionYear, specType: 'productionYear' },
+    { label: t('mastLiftingCapacity'), value: product.specs.mastLiftingCapacity, specType: 'mastLiftingCapacity' },
+    { label: t('preliminaryLiftingCapacity'), value: product.specs.preliminaryLiftingCapacity, specType: 'preliminaryLiftingCapacity' },
+    { label: t('workingHours'), value: product.specs.workingHours, specType: 'workingHours' },
+    { label: t('liftHeight'), value: product.specs.liftHeight, specType: 'liftHeight' },
+    { label: t('minHeight'), value: product.specs.minHeight, specType: 'minHeight' },
+    { label: t('preliminaryLifting'), value: product.specs.preliminaryLifting, specType: 'preliminaryLifting' },
+    { label: t('battery'), value: product.specs.battery, specType: 'battery' },
+    { label: t('condition'), value: product.specs.condition, specType: 'condition' }
   ].filter(spec => spec.value && spec.value.trim() !== '');
 
   // Extended specifications (collapsible)
   const extendedSpecs = [
-    { label: t('driveType'), value: product.specs.driveType },
-    { label: t('mast'), value: product.specs.mast },
-    { label: t('freeStroke'), value: product.specs.freeStroke },
-    { label: t('dimensions'), value: product.specs.dimensions },
-    { label: t('wheels'), value: product.specs.wheels },
-    { label: t('operatorPlatform'), value: product.specs.operatorPlatform },
-    { label: t('additionalOptions'), value: product.specs.additionalOptions }
+    { label: t('driveType'), value: product.specs.driveType, specType: 'driveType' },
+    { label: t('mast'), value: product.specs.mast, specType: 'mast' },
+    { label: t('freeStroke'), value: product.specs.freeStroke, specType: 'freeStroke' },
+    { label: t('dimensions'), value: product.specs.dimensions, specType: 'dimensions' },
+    { label: t('wheels'), value: product.specs.wheels, specType: 'wheels' },
+    { label: t('operatorPlatform'), value: product.specs.operatorPlatform, specType: 'operatorPlatform' },
+    { label: t('additionalOptions'), value: product.specs.additionalOptions, specType: 'additionalOptions' }
   ].filter(spec => spec.value && spec.value.trim() !== '');
 
   const hasExtendedSpecs = extendedSpecs.length > 0 || (product.specs.additionalDescription && product.specs.additionalDescription.trim() !== '');
@@ -79,7 +100,9 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
             {mainSpecs.map((spec, index) => (
               <div key={index} className="flex flex-col sm:flex-row sm:justify-between p-4 hover:bg-gray-50 transition-colors">
                 <span className="font-medium text-gray-700 sm:w-1/2">{spec.label}</span>
-                <span className="text-gray-900 mt-1 sm:mt-0 sm:text-right sm:w-1/2">{spec.value}</span>
+                <span className="text-gray-900 mt-1 sm:mt-0 sm:text-right sm:w-1/2">
+                  {formatValueWithUnit(spec.value, spec.specType)}
+                </span>
               </div>
             ))}
           </div>
@@ -119,7 +142,9 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
                       {extendedSpecs.map((spec, index) => (
                         <div key={index} className="flex flex-col sm:flex-row sm:justify-between p-4 hover:bg-gray-50 transition-colors">
                           <span className="font-medium text-gray-700 sm:w-1/2">{spec.label}</span>
-                          <span className="text-gray-900 mt-1 sm:mt-0 sm:text-right sm:w-1/2">{spec.value}</span>
+                          <span className="text-gray-900 mt-1 sm:mt-0 sm:text-right sm:w-1/2">
+                            {formatValueWithUnit(spec.value, spec.specType)}
+                          </span>
                         </div>
                       ))}
                     </div>

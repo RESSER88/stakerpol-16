@@ -11,14 +11,14 @@ export const productSpecsTranslations: Translations = {
   },
   mastLiftingCapacity: {
     pl: 'Udźwig maszt',
-    en: 'Mast lifting capacity',
+    en: 'Capacity',
     cs: 'Nosnost stožáru',
     sk: 'Nosnosť stožiara',
     de: 'Hubkapazität Mast'
   },
   preliminaryLiftingCapacity: {
     pl: 'Udźwig wstępne podnoszenie',
-    en: 'Preliminary lifting capacity',
+    en: 'Initial lift',
     cs: 'Nosnost předběžného zdvihu',
     sk: 'Nosnosť predbežného zdvihu',
     de: 'Vorhubkapazität'
@@ -38,15 +38,15 @@ export const productSpecsTranslations: Translations = {
     de: 'Hubhöhe'
   },
   minHeight: {
-    pl: 'Wysokość minimalna',
-    en: 'Minimum height',
+    pl: 'Wysokość konstrukcyjna',
+    en: 'Close high',
     cs: 'Minimální výška',
     sk: 'Minimálna výška',
     de: 'Mindesthöhe'
   },
   preliminaryLifting: {
-    pl: 'Podnoszenie wstępne',
-    en: 'Preliminary lifting',
+    pl: 'Unoszone ramiona podporowe',
+    en: 'Initial lift',
     cs: 'Předběžné zdvihání',
     sk: 'Predbežné zdvíhanie',
     de: 'Vorhub'
@@ -94,8 +94,8 @@ export const productSpecsTranslations: Translations = {
     de: 'Mast'
   },
   freeStroke: {
-    pl: 'Skok swobodny',
-    en: 'Free stroke',
+    pl: 'Wolny skok',
+    en: 'Free lift',
     cs: 'Volný zdvih',
     sk: 'Voľný zdvih',
     de: 'Freihub'
