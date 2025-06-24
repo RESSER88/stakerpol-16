@@ -1,82 +1,165 @@
-
 import { Translations } from './types';
 
 export const homepageTranslations: Translations = {
-  heroTitle: {
-    pl: 'Profesjonalna sprzedaż i serwis używanych wózków paletowych BT Toyota',
-    en: 'Professional sales and service of used BT Toyota pallet trucks',
-    cs: 'Profesionální prodej a servis použitých paletových vozíků BT Toyota',
-    sk: 'Profesionálny predaj a servis použitých paletových vozíkov BT Toyota',
-    de: 'Professioneller Verkauf und Service von gebrauchten BT Toyota Palettenhubwagen'
+  hero: {
+    pl: 'Profesjonalna sprzedaż i serwis wózków widłowych BT Toyota',
+    en: 'Professional sales and service of BT Toyota forklifts',
+    cs: 'Profesionální prodej a servis vysokozdvižných vozíků BT Toyota',
+    sk: 'Profesionálny predaj a servis vysokozdvižných vozíkov BT Toyota',
+    de: 'Professioneller Verkauf und Service von BT Toyota Gabelstaplern'
   },
   heroSubtitle: {
-    pl: 'Sprawdzone rozwiązania magazynowe najwyższej jakości',
-    en: 'Proven warehouse solutions of the highest quality',
-    cs: 'Ověřená skladová řešení nejvyšší kvality',
-    sk: 'Overené skladové riešenia najvyššej kvality',
-    de: 'Bewährte Lagerlösungen höchster Qualität'
+    pl: 'Oferujemy szeroki wybór wózków paletowych BT Toyota, idealnie dopasowanych do różnych zastosowań i potrzeb.',
+    en: 'We offer a wide range of BT Toyota pallet trucks, perfectly suited for various applications and needs.',
+    cs: 'Nabízíme široký výběr paletových vozíků BT Toyota, perfektně přizpůsobených různým potřebám a použití.',
+    sk: 'Ponúkame široký výber paletových vozíkov BT Toyota, ideálne prispôsobených rôznym požiadavkám a spôsobom použitia.',
+    de: 'Wir bieten eine große Auswahl an BT Toyota Hubwagen, die ideal auf verschiedene Anwendungen und Bedürfnisse abgestimmt sind.'
   },
-  aboutUsTitle: {
+  browseProducts: {
+    pl: 'Przeglądaj nasze produkty',
+    en: 'Browse our products',
+    cs: 'Procházet naše produkty',
+    sk: 'Prehliadať naše produkty',
+    de: 'Unsere Produkte durchsuchen'
+  },
+  browseProductsDescription: {
+    pl: 'Oferujemy szeroki wybór wózków paletowych BT Toyota, idealnie dopasowanych do różnych zastosowań i potrzeb.',
+    en: 'We offer a wide range of BT Toyota pallet trucks, perfectly suited for various applications and needs.',
+    cs: 'Nabízíme široký výběr paletových vozíků BT Toyota, perfektně přizpůsobených různým potřebám a použití.',
+    sk: 'Ponúkame široký výber paletových vozíkov BT Toyota, ideálne prispôsobených rôznym požiadavkám a spôsobom použitia.',
+    de: 'Wir bieten eine große Auswahl an BT Toyota Hubwagen, die ideal auf verschiedene Anwendungen und Bedürfnisse abgestimmt sind.'
+  },
+  aboutUs: {
     pl: 'O nas',
     en: 'About us',
     cs: 'O nás',
     sk: 'O nás',
     de: 'Über uns'
   },
-  aboutUsDesc: {
-    pl: 'Stakerpol to rodzinna firma działająca od 2008 roku, która powstała z pasji i chęci budowania wartościowych relacji w biznesie. Naszą działalność opieramy na trzech filarach: Partnerstwie, Pasji i Profesjonalizmie. Specjalizujemy się w sprzedaży używanych elektrycznych wózków paletowych Toyota BT SWE 200D, oferując różne konfiguracje dopasowane do potrzeb magazynowych. Zapewniamy najwyższą jakość sprzętu, profesjonalne doradztwo i autentyczne zaangażowanie w każdą współpracę. Dla nas najważniejszy jest szacunek do Klienta i długofalowe relacje oparte na wzajemnym zaufaniu.',
-    en: 'Stakerpol is a family business operating since 2008, founded out of passion and a desire to build valuable business relationships. Our business is based on three pillars: Partnership, Passion, and Professionalism. We specialize in the sale of used Toyota BT SWE 200D electric pallet trucks, offering various configurations tailored to warehouse needs. We provide the highest quality equipment, professional advice, and genuine commitment to every collaboration. For us, the most important thing is respect for the customer and long-term relationships based on mutual trust.',
-    cs: 'Stakerpol je rodinná firma působící od roku 2008, která vznikla z vášně a touhy budovat hodnotné vztahy v podnikání. Naše činnost se opírá o tři pilíře: partnerství, vášeň a profesionalitu. Specializujeme se na prodej použitých elektrických paletových vozíků Toyota BT SWE 200D a nabízíme různé konfigurace přizpůsobené potřebám skladů. Zajišťujeme nejvyšší kvalitu zařízení, profesionální poradenství a autentické zapojení do každé spolupráce. Pro nás je nejdůležitější respekt k zákazníkovi a dlouhodobé vztahy založené na vzájemné důvěře.',
-    sk: 'Stakerpol je rodinná firma pôsobiaca od roku 2008, ktorá vznikla z nadšenia a túžby budovať hodnotné vzťahy v podnikaní. Naša činnosť sa opiera o tri piliere: partnerstvo, vášeň a profesionalitu. Špecializujeme sa na predaj použitých elektrických paletových vozíkov Toyota BT SWE 200D, ktoré ponúkame v rôznych konfiguráciách prispôsobených potrebám skladovania. Zaručujeme najvyššiu kvalitu zariadení, profesionálne poradenstvo a autentické zapojenie do každej spolupráce. Pre nás je najdôležitejšia úcta k zákazníkovi a dlhodobé vzťahy založené na vzájomnej dôvere.',
-    de: 'Stakerpol ist ein Familienunternehmen, das seit 2008 tätig ist und aus der Leidenschaft und dem Wunsch heraus entstanden ist, wertvolle Geschäftsbeziehungen aufzubauen. Unsere Tätigkeit basiert auf drei Säulen: Partnerschaft, Leidenschaft und Professionalität. Wir sind auf den Verkauf von gebrauchten elektrischen Palettenhubwagen Toyota BT SWE 200D spezialisiert und bieten verschiedene Konfigurationen an, die auf die Lagerbedürfnisse zugeschnitten sind. Wir garantieren höchste Qualität der Geräte, professionelle Beratung und echtes Engagement in jeder Zusammenarbeit. Für uns stehen der Respekt gegenüber dem Kunden und langfristige Beziehungen, die auf gegenseitigem Vertrauen basieren, an erster Stelle.'
+  aboutUsTitle: {
+    pl: 'Dlaczego wybrać Stakerpol?',
+    en: 'Why choose Stakerpol?',
+    cs: 'Proč si vybrat Stakerpol?',
+    sk: 'Prečo si vybrať Stakerpol?',
+    de: 'Warum Stakerpol wählen?'
   },
-  advantagesTitle: {
-    pl: 'Nasze zalety',
-    en: 'Our advantages',
-    cs: 'Naše výhody',
-    sk: 'Naše výhody',
-    de: 'Unsere Vorteile'
+  aboutUsDescription: {
+    pl: 'Jesteśmy doświadczonym zespołem specjalistów z wieloletnim doświadczeniem w branży logistycznej. Oferujemy profesjonalne doradztwo, wysokiej jakości sprzęt oraz kompleksowy serwis.',
+    en: 'We are an experienced team of specialists with years of experience in the logistics industry. We offer professional consulting, high-quality equipment and comprehensive service.',
+    cs: 'Jsme zkušený tým specialistů s mnohaletými zkušenostmi v logistickém průmyslu. Nabízíme profesionální poradenství, vysoce kvalitní vybavení a komplexní servis.',
+    sk: 'Sme skúsený tím špecialistov s dlhoročnými skúsenosťami v logistickom priemysle. Ponúkame profesionálne poradenstvo, vysokú kvalitu vybavenia a komplexný servis.',
+    de: 'Wir sind ein erfahrenes Team von Spezialisten mit langjähriger Erfahrung in der Logistikbranche. Wir bieten professionelle Beratung, hochwertige Ausrüstung und umfassenden Service.'
   },
-  qualityGuaranteeTitle: {
-    pl: 'Gwarancja Jakości',
-    en: 'Quality Guarantee',
-    cs: 'Záruka kvality',
-    sk: 'Záruka kvality',
-    de: 'Qualitätsgarantie'
+  whyChooseUs: {
+    pl: 'Dlaczego my?',
+    en: 'Why us?',
+    cs: 'Proč my?',
+    sk: 'Prečo my?',
+    de: 'Warum wir?'
   },
-  qualityGuaranteeDesc: {
-    pl: 'Każdy wózek to sprawdzony sprzęt z gwarancją jakości. Testy, regeneracja baterii i bezpieczeństwo – to nasz standard.',
-    en: 'Every truck is a proven piece of equipment with a quality guarantee. Testing, battery regeneration, and safety are our standard.',
-    cs: 'Každý vozík je prověřené zařízení se zárukou kvality. Testování, regenerace baterií a bezpečnost – to je náš standard.',
-    sk: 'Každý vozík je overené zariadenie so zárukou kvality. Testovanie, regenerácia batérií a bezpečnosť – to je náš štandard.',
-    de: 'Jeder Stapler ist ein geprüftes Gerät mit Qualitätsgarantie. Tests, Batterieregeneration und Sicherheit – das ist unser Standard.'
+  experience: {
+    pl: 'Doświadczenie',
+    en: 'Experience',
+    cs: 'Zkušenosti',
+    sk: 'Skúsenosti',
+    de: 'Erfahrung'
   },
-  riskFreeTitle: {
-    pl: 'Kupuj bez ryzyka',
-    en: 'Buy without risk',
-    cs: 'Nakupujte bez rizika',
-    sk: 'Nakupujte bez rizika',
-    de: 'Kaufen Sie ohne Risiko'
+  experienceDescription: {
+    pl: 'Wieloletnie doświadczenie w branży logistycznej',
+    en: 'Years of experience in the logistics industry',
+    cs: 'Mnohaletá zkušenost v logistické branži',
+    sk: 'Dlhoročná skúsenosť v logistickom priemysle',
+    de: 'Langjährige Erfahrung in der Logistikbranche'
   },
-  riskFreeDesc: {
-    pl: 'Nie sprzedajemy przypadkowych maszyn – oferujemy rozwiązania, które działają.',
-    en: 'We don\'t sell random machines—we offer solutions that work.',
-    cs: 'Neprodáváme náhodné stroje – nabízíme řešení, která fungují.',
-    sk: 'Nepredávame náhodné stroje – ponúkame riešenia, ktoré fungujú.',
-    de: 'Wir verkaufen keine zufälligen Maschinen – wir bieten Lösungen, die funktionieren.'
+  quality: {
+    pl: 'Jakość',
+    en: 'Quality',
+    cs: 'Kvalita',
+    sk: 'Kvalita',
+    de: 'Qualität'
   },
-  experienceTitle: {
-    pl: 'Doświadczenie od 2008 roku',
-    en: 'Experience since 2008',
-    cs: 'Zkušenosti od roku 2008',
-    sk: 'Skúsenosti od roku 2008',
-    de: 'Erfahrung seit 2008'
+  qualityDescription: {
+    pl: 'Tylko sprawdzone i certyfikowane produkty',
+    en: 'Only proven and certified products',
+    cs: 'Pouze ověřené a certifikované produkty',
+    sk: 'Len overené a certifikované produkty',
+    de: 'Nur bewährte und zertifizierte Produkte'
   },
-  experienceDesc: {
-    pl: 'Przez lata zdobyliśmy zaufanie setek firm, dostarczając sprawdzone rozwiązania do magazynów w całej Polsce i Europie.',
-    en: 'Over the years, we have gained the trust of hundreds of companies by providing proven solutions to warehouses throughout Poland and Europe.',
-    cs: 'Za ta léta jsme si získali důvěru stovek firem a dodali jsme osvědčená řešení do skladů po celé Polsku a Evropě.',
-    sk: 'Za roky sme si získali dôveru stoviek firiem, dodávajúc overené riešenia do skladov po celom Poľsku a Európe.',
-    de: 'Im Laufe der Jahre haben wir das Vertrauen von Hunderten von Unternehmen gewonnen, indem wir bewährte Lösungen für Lagerhäuser in ganz Polen und Europa geliefert haben.'
+  service: {
+    pl: 'Serwis',
+    en: 'Service',
+    cs: 'Servis',
+    sk: 'Servis',
+    de: 'Service'
+  },
+  serviceDescription: {
+    pl: 'Kompleksowy serwis i wsparcie techniczne',
+    en: 'Comprehensive service and technical support',
+    cs: 'Komplexní servis a technická podpora',
+    sk: 'Komplexný servis a technická podpora',
+    de: 'Umfassender Service und technischer Support'
+  },
+  support: {
+    pl: 'Wsparcie',
+    en: 'Support',
+    cs: 'Podpora',
+    sk: 'Podpora',
+    de: 'Unterstützung'
+  },
+  supportDescription: {
+    pl: 'Profesjonalne doradztwo i pomoc w wyborze',
+    en: 'Professional advice and help in choosing',
+    cs: 'Profesionální poradenství a pomoc při výběru',
+    sk: 'Profesionálne poradenstvo a pomoc pri výbere',
+    de: 'Professionelle Beratung und Hilfe bei der Auswahl'
+  },
+  testimonials: {
+    pl: 'Opinie klientów',
+    en: 'Customer testimonials',
+    cs: 'Recenze zákazníků',
+    sk: 'Recenzie zákazníkov',
+    de: 'Kundenbewertungen'
+  },
+  testimonialsSubtitle: {
+    pl: 'Zobacz, co mówią o nas nasi klienci',
+    en: 'See what our customers say about us',
+    cs: 'Podívejte se, co o nás říkají naši zákazníci',
+    sk: 'Pozrite si, čo o nás hovoria naši zákazníci',
+    de: 'Sehen Sie, was unsere Kunden über uns sagen'
+  },
+  viewAllTestimonials: {
+    pl: 'Zobacz wszystkie opinie',
+    en: 'View all testimonials',
+    cs: 'Zobrazit všechny recenze',
+    sk: 'Zobraziť všetky recenzie',
+    de: 'Alle Bewertungen anzeigen'
+  },
+  callToAction: {
+    pl: 'Gotowy na współpracę?',
+    en: 'Ready to cooperate?',
+    cs: 'Připraveni ke spolupráci?',
+    sk: 'Pripravení na spoluprácu?',
+    de: 'Bereit zur Zusammenarbeit?'
+  },
+  callToActionDescription: {
+    pl: 'Skontaktuj się z nami już dziś i znajdź idealne rozwiązanie dla swojej firmy',
+    en: 'Contact us today and find the perfect solution for your business',
+    cs: 'Kontaktujte nás ještě dnes a najděte perfektní řešení pro vaši firmu',
+    sk: 'Kontaktujte nás už dnes a nájdite perfektné riešenie pre vašu firmu',
+    de: 'Kontaktieren Sie uns noch heute und finden Sie die perfekte Lösung für Ihr Unternehmen'
+  },
+  contactUs: {
+    pl: 'Skontaktuj się z nami',
+    en: 'Contact us',
+    cs: 'Kontaktujte nás',
+    sk: 'Kontaktujte nás',
+    de: 'Kontaktieren Sie uns'
+  },
+  callNow: {
+    pl: 'Zadzwoń teraz',
+    en: 'Call now',
+    cs: 'Zavolejte nyní',
+    sk: 'Zavolajte teraz',
+    de: 'Jetzt anrufen'
   }
 };
