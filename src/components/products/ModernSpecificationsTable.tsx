@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,7 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
     }
   };
 
-  // Main specifications (always visible)
+  // Main specifications (always visible) - removed liftHeight
   const mainSpecs = [
     { label: t('model'), value: product.model },
     { label: t('serialNumber'), value: product.specs.serialNumber },
@@ -34,7 +35,6 @@ const ModernSpecificationsTable = ({ product, language }: ModernSpecificationsTa
     { label: t('mastLiftingCapacity'), value: product.specs.mastLiftingCapacity },
     { label: t('preliminaryLiftingCapacity'), value: product.specs.preliminaryLiftingCapacity },
     { label: t('workingHours'), value: product.specs.workingHours },
-    { label: t('liftHeight'), value: product.specs.liftHeight },
     { label: t('minHeight'), value: product.specs.minHeight },
     { label: t('preliminaryLifting'), value: product.specs.preliminaryLifting },
     { label: t('battery'), value: product.specs.battery },

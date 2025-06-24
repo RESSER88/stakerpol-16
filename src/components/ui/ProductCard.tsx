@@ -7,6 +7,7 @@ import { Product } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import OptimizedImage from '@/components/ui/OptimizedImage';
+import LiftHeightBadge from '@/components/products/LiftHeightBadge';
 
 interface ProductCardProps {
   product: Product;
@@ -23,7 +24,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in border-none rounded-lg shadow h-full flex flex-col product-card-enhanced">
       <Link to={`/products/${product.id}`} className="block">
-        <div className="aspect-[3/4] overflow-hidden bg-stakerpol-lightgray image-hover-zoom">
+        <div className="aspect-[3/4] overflow-hidden bg-stakerpol-lightgray image-hover-zoom relative">
           <OptimizedImage
             src={displayImage}
             alt={product.model}
@@ -32,6 +33,8 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             className="h-full w-full"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+          {/* Lift Height Badge positioned over the image */}
+          <LiftHeightBadge product={product} language={language} />
         </div>
       </Link>
       <CardContent className="p-4 md:p-6 lg:p-8 flex-1 flex flex-col card-content">

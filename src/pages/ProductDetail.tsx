@@ -10,7 +10,6 @@ import ProductImage from '@/components/products/ProductImage';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductHeader from '@/components/products/ProductHeader';
 import RelatedProducts from '@/components/products/RelatedProducts';
-import LiftHeightBadge from '@/components/products/LiftHeightBadge';
 import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
@@ -84,9 +83,6 @@ const ProductDetail = () => {
       <RelatedProducts currentProductId={product.id} products={products} />
       
       <CallToAction />
-      
-      {/* Lift Height Badge - only visible on product pages */}
-      <LiftHeightBadge product={product} language={language} />
     </Layout>
   );
 };

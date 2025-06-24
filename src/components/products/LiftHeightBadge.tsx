@@ -17,10 +17,10 @@ const LiftHeightBadge = ({ product, language }: LiftHeightBadgeProps) => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 animate-fade-in">
-      <div className="bg-stakerpol-navy text-white px-3 py-2 rounded-lg shadow-lg text-sm font-medium hover:bg-stakerpol-navy/90 transition-colors duration-200">
-        <div className="flex items-center gap-2">
-          <span className="text-xs opacity-75">{t('liftHeight')}:</span>
+    <div className="absolute bottom-2 left-2 z-10 animate-fade-in">
+      <div className="bg-stakerpol-navy text-white px-2 py-1 md:px-2 md:py-1 rounded-md shadow-md text-xs md:text-sm font-medium hover:bg-stakerpol-navy/90 transition-all duration-200">
+        <div className="flex items-center gap-1.5">
+          <span className="opacity-90">{t('liftHeight')}:</span>
           <span className="font-semibold">{product.specs.liftHeight}</span>
         </div>
       </div>
