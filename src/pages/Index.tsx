@@ -117,7 +117,7 @@ const Index = () => {
         <div className="container-custom">
           <h2 className="section-title text-center">{t('aboutUsTitle')}</h2>
           <p className="section-subtitle text-center max-w-3xl mx-auto">
-            {t('aboutUsDesc')}
+            {t('aboutUsDescription')}
           </p>
         </div>
       </section>
