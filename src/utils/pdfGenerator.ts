@@ -109,10 +109,11 @@ export const generatePDFQuote = async (data: QuoteData): Promise<void> => {
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(handlePolishText('ul. Szewska 6, 32-043 Skała'), 15, 25);
-  doc.text('Tel: +48 694 133 592', 15, 29);
-  doc.text('E-mail: info@stakerpol.pl', 15, 33);
-  doc.text('www.stakerpol.pl', 15, 37);
+  doc.text(handlePolishText('Michał Seweryn'), 15, 25);
+  doc.text(handlePolishText('32-043 Skała, ul. Szewska 6'), 15, 29);
+  doc.text('NIP: PL6492111954', 15, 33);
+  doc.text('Tel: +48 694 133 592', 15, 37);
+  doc.text('E-mail: info@stakerpol.pl', 15, 41);
   
   // Prawa strona - numer oferty i daty
   doc.setFontSize(16);
