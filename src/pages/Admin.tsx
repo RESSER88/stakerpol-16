@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -12,6 +13,7 @@ import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const { user, loading: authLoading, isAdmin } = useSupabaseAuth();
@@ -27,6 +29,7 @@ const Admin = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
+  const [autoMigrationStarted, setAutoMigrationStarted] = useState(false);
   
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -61,6 +64,75 @@ const Admin = () => {
     }
   }, [products, productsLoading]);
 
+  // Auto-migration effect
+  useEffect(() => {
+    const runAutoMigration = async () => {
+      if (stats.base64Images > 0 && !autoMigrationStarted && isAdmin) {
+        setAutoMigrationStarted(true);
+        
+        toast({
+          title: "🚀 Rozpoczynam automatyczną migrację",
+          description: `Wykryto ${stats.base64Images} obrazów base64. Migracja rozpoczyna się automatycznie...`,
+          duration: 5000
+        });
+
+        try {
+          console.log('🔄 Starting automatic image migration...');
+          
+          // First, ensure storage bucket exists
+          const { error: bucketError } = await supabase.storage.createBucket('product-images', { public: true });
+          if (bucketError && !bucketError.message.includes('already exists')) {
+            console.error('Bucket creation error:', bucketError);
+          } else {
+            console.log('✅ Product-images bucket ready');
+          }
+
+          // Run migration
+          const { data, error } = await supabase.functions.invoke('migrate-images', {
+            body: {}
+          });
+
+          if (error) {
+            console.error('Migration error:', error);
+            throw error;
+          }
+
+          console.log('✅ Migration completed:', data);
+          
+          if (data.success) {
+            toast({
+              title: "✅ Migracja ukończona pomyślnie!",
+              description: `Automatycznie przeniesiono ${data.stats.success} obrazów do Supabase Storage. Strona będzie działać 50-80% szybciej!`,
+              duration: 10000
+            });
+
+            // Force refresh to show updated stats
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else {
+            throw new Error(data.error || 'Migration failed');
+          }
+
+        } catch (error) {
+          console.error('Auto-migration error:', error);
+          toast({
+            title: "⚠️ Błąd automatycznej migracji",
+            description: `Błąd: ${error.message}. Możesz spróbować ponownie z zakładki "Migracja zdjęć".`,
+            variant: "destructive",
+            duration: 10000
+          });
+          setAutoMigrationStarted(false);
+        }
+      }
+    };
+
+    if (!productsLoading && stats.base64Images > 0) {
+      // Small delay to ensure UI is ready
+      setTimeout(runAutoMigration, 1000);
+    }
+  }, [stats, autoMigrationStarted, isAdmin, productsLoading, toast]);
+
   // ProductManager handlers
   const defaultNewProduct: Product = {
     id: '',
@@ -74,7 +146,7 @@ const Admin = () => {
       condition: 'bardzo-dobry',
       workingHours: '0',
       liftHeight: '0',
-      liftCapacity: '0',
+      capacity: '0',
       fuelType: 'electric',
       transmission: 'automatic'
     },
@@ -154,6 +226,19 @@ const Admin = () => {
           <p className="text-gray-600">
             Zarządzanie produktami i systemem
           </p>
+          {autoMigrationStarted && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <span className="font-semibold text-blue-800">
+                  Trwa automatyczna migracja obrazów do Supabase Storage...
+                </span>
+              </div>
+              <p className="text-sm text-blue-700 mt-1">
+                Proces może potrwać kilka minut. Strona będzie działać znacznie szybciej po zakończeniu.
+              </p>
+            </div>
+          )}
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
@@ -222,17 +307,31 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  {stats.base64Images > 0 && (
+                  {stats.base64Images > 0 && !autoMigrationStarted && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Wrench className="h-4 w-4 text-yellow-600" />
                         <span className="font-semibold text-yellow-800">
-                          Wymagana migracja
+                          Automatyczna migracja rozpocznie się wkrótce
                         </span>
                       </div>
                       <p className="text-sm text-yellow-700">
-                        Znaleziono {stats.base64Images} obrazów przechowywanych jako base64. 
-                        Migracja do Supabase Storage znacznie poprawi wydajność systemu.
+                        Znaleziono {stats.base64Images} obrazów do migracji. 
+                        System automatycznie rozpocznie migrację do Supabase Storage.
+                      </p>
+                    </div>
+                  )}
+
+                  {stats.base64Images === 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold text-green-800">
+                          Wszystkie obrazy są już w Supabase Storage!
+                        </span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        Migracja została ukończona. Wszystkie obrazy są teraz serwowane z CDN.
                       </p>
                     </div>
                   )}
