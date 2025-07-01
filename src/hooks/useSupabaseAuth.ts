@@ -9,6 +9,7 @@ export const useSupabaseAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -20,31 +21,39 @@ export const useSupabaseAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            try {
-              const { data, error } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .single();
+          // Check if user is admin with proper loading state
+          setAdminLoading(true);
+          try {
+            const { data, error } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (!error && data) {
+              const userIsAdmin = data.role === 'admin';
+              setIsAdmin(userIsAdmin);
               
-              if (!error && data) {
-                const userIsAdmin = data.role === 'admin';
-                setIsAdmin(userIsAdmin);
-                
-                // Auto-redirect to admin if user is admin and just signed in
-                if (userIsAdmin && event === 'SIGNED_IN' && window.location.pathname !== '/admin') {
-                  console.log('Redirecting admin user to /admin');
+              // Auto-redirect to admin if user is admin and just signed in
+              if (userIsAdmin && event === 'SIGNED_IN' && window.location.pathname !== '/admin') {
+                console.log('Redirecting admin user to /admin');
+                setTimeout(() => {
                   window.location.href = '/admin';
-                }
+                }, 100);
               }
-            } catch (error) {
-              console.error('Error checking admin role:', error);
+            } else {
+              console.log('User role not found or error:', error);
+              setIsAdmin(false);
             }
-          }, 0);
+          } catch (error) {
+            console.error('Error checking admin role:', error);
+            setIsAdmin(false);
+          } finally {
+            setAdminLoading(false);
+          }
         } else {
           setIsAdmin(false);
+          setAdminLoading(false);
         }
         
         setLoading(false);
@@ -55,7 +64,9 @@ export const useSupabaseAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!session) {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -162,6 +173,7 @@ export const useSupabaseAuth = () => {
     session,
     loading,
     isAdmin,
+    adminLoading,
     signIn,
     signUp,
     signOut

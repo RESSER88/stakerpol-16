@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench } from 'lucide-react';
+import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircle, AlertCircle } from 'lucide-react';
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
@@ -16,7 +15,7 @@ import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
-  const { user, loading: authLoading, isAdmin } = useSupabaseAuth();
+  const { user, loading: authLoading, isAdmin, adminLoading } = useSupabaseAuth();
   const { 
     products, 
     isLoading: productsLoading, 
@@ -29,12 +28,13 @@ const Admin = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
-  const [autoMigrationStarted, setAutoMigrationStarted] = useState(false);
+  const [migrationCompleted, setMigrationCompleted] = useState(false);
   
   const [stats, setStats] = useState({
     totalProducts: 0,
     base64Images: 0,
-    storageImages: 0
+    storageImages: 0,
+    migrationProgress: 0
   });
   const { toast } = useToast();
 
@@ -43,10 +43,12 @@ const Admin = () => {
       const totalProducts = products.length;
       let base64Count = 0;
       let storageCount = 0;
+      let totalImages = 0;
 
       products.forEach(product => {
         if (product.images) {
           product.images.forEach(img => {
+            totalImages++;
             if (img.startsWith('data:')) {
               base64Count++;
             } else if (img.includes('supabase.co/storage')) {
@@ -56,82 +58,74 @@ const Admin = () => {
         }
       });
 
+      const migrationProgress = totalImages > 0 ? Math.round((storageCount / totalImages) * 100) : 100;
+      const completed = base64Count === 0 && totalImages > 0;
+
       setStats({
         totalProducts,
         base64Images: base64Count,
-        storageImages: storageCount
+        storageImages: storageCount,
+        migrationProgress
+      });
+
+      setMigrationCompleted(completed);
+
+      // Show migration status
+      if (completed && !migrationCompleted) {
+        toast({
+          title: "✅ Migracja obrazów ukończona!",
+          description: `Wszystkie ${storageCount} obrazów zostały przeniesione do Supabase Storage.`,
+          duration: 8000
+        });
+      } else if (base64Count > 0) {
+        console.log(`Migracja w toku: ${migrationProgress}% ukończone (${base64Count} obrazów do migracji)`);
+      }
+    }
+  }, [products, productsLoading, migrationCompleted, toast]);
+
+  // Complete remaining migration if needed
+  const completeMigration = async () => {
+    if (stats.base64Images === 0) {
+      toast({
+        title: "ℹ️ Migracja już ukończona",
+        description: "Wszystkie obrazy są już w Supabase Storage.",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "🚀 Dokańczam migrację obrazów",
+        description: `Migracja pozostałych ${stats.base64Images} obrazów...`,
+        duration: 5000
+      });
+
+      const { data, error } = await supabase.functions.invoke('migrate-images', {
+        body: { completeMigration: true }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "✅ Migracja ukończona!",
+          description: `Pomyślnie przeniesiono ${data.stats?.success || stats.base64Images} obrazów.`,
+          duration: 8000
+        });
+        
+        // Refresh after successful migration
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    } catch (error: any) {
+      console.error('Migration completion error:', error);
+      toast({
+        title: "⚠️ Błąd dokańczania migracji",
+        description: `Błąd: ${error.message}`,
+        variant: "destructive",
+        duration: 8000
       });
     }
-  }, [products, productsLoading]);
-
-  // Auto-migration effect
-  useEffect(() => {
-    const runAutoMigration = async () => {
-      if (stats.base64Images > 0 && !autoMigrationStarted && isAdmin) {
-        setAutoMigrationStarted(true);
-        
-        toast({
-          title: "🚀 Rozpoczynam automatyczną migrację",
-          description: `Wykryto ${stats.base64Images} obrazów base64. Migracja rozpoczyna się automatycznie...`,
-          duration: 5000
-        });
-
-        try {
-          console.log('🔄 Starting automatic image migration...');
-          
-          // First, ensure storage bucket exists
-          const { error: bucketError } = await supabase.storage.createBucket('product-images', { public: true });
-          if (bucketError && !bucketError.message.includes('already exists')) {
-            console.error('Bucket creation error:', bucketError);
-          } else {
-            console.log('✅ Product-images bucket ready');
-          }
-
-          // Run migration
-          const { data, error } = await supabase.functions.invoke('migrate-images', {
-            body: {}
-          });
-
-          if (error) {
-            console.error('Migration error:', error);
-            throw error;
-          }
-
-          console.log('✅ Migration completed:', data);
-          
-          if (data.success) {
-            toast({
-              title: "✅ Migracja ukończona pomyślnie!",
-              description: `Automatycznie przeniesiono ${data.stats.success} obrazów do Supabase Storage. Strona będzie działać 50-80% szybciej!`,
-              duration: 10000
-            });
-
-            // Force refresh to show updated stats
-            setTimeout(() => {
-              window.location.reload();
-            }, 2000);
-          } else {
-            throw new Error(data.error || 'Migration failed');
-          }
-
-        } catch (error) {
-          console.error('Auto-migration error:', error);
-          toast({
-            title: "⚠️ Błąd automatycznej migracji",
-            description: `Błąd: ${error.message}. Możesz spróbować ponownie z zakładki "Migracja zdjęć".`,
-            variant: "destructive",
-            duration: 10000
-          });
-          setAutoMigrationStarted(false);
-        }
-      }
-    };
-
-    if (!productsLoading && stats.base64Images > 0) {
-      // Small delay to ensure UI is ready
-      setTimeout(runAutoMigration, 1000);
-    }
-  }, [stats, autoMigrationStarted, isAdmin, productsLoading, toast]);
+  };
 
   // ProductManager handlers - Fixed defaultNewProduct with correct Product interface properties
   const defaultNewProduct: Product = {
@@ -211,12 +205,14 @@ const Admin = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
-          <p className="text-gray-600">Sprawdzanie uprawnień...</p>
+          <p className="text-gray-600">
+            {authLoading ? 'Sprawdzanie uprawnień...' : 'Weryfikacja roli administratora...'}
+          </p>
         </div>
       </div>
     );
@@ -240,19 +236,37 @@ const Admin = () => {
           <p className="text-gray-600">
             Zarządzanie produktami i systemem
           </p>
-          {autoMigrationStarted && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                <span className="font-semibold text-blue-800">
-                  Trwa automatyczna migracja obrazów do Supabase Storage...
-                </span>
+          
+          {/* Migration Status Card */}
+          <div className="mt-4 p-4 border rounded-lg bg-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {migrationCompleted ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                )}
+                <div>
+                  <h3 className="font-semibold">
+                    Status migracji obrazów: {stats.migrationProgress}%
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {migrationCompleted 
+                      ? `Wszystkie ${stats.storageImages} obrazów w Supabase Storage`
+                      : `${stats.base64Images} obrazów do migracji, ${stats.storageImages} już przeniesione`
+                    }
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-blue-700 mt-1">
-                Proces może potrwać kilka minut. Strona będzie działać znacznie szybciej po zakończeniu.
-              </p>
+              
+              {!migrationCompleted && (
+                <Button onClick={completeMigration} className="cta-button">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Dokończ migrację
+                </Button>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
@@ -321,17 +335,17 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  {stats.base64Images > 0 && !autoMigrationStarted && (
+                  {stats.base64Images > 0 && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Wrench className="h-4 w-4 text-yellow-600" />
                         <span className="font-semibold text-yellow-800">
-                          Automatyczna migracja rozpocznie się wkrótce
+                          Migracja w toku
                         </span>
                       </div>
                       <p className="text-sm text-yellow-700">
                         Znaleziono {stats.base64Images} obrazów do migracji. 
-                        System automatycznie rozpocznie migrację do Supabase Storage.
+                        System automatycznie migruje obrazy do Supabase Storage.
                       </p>
                     </div>
                   )}
