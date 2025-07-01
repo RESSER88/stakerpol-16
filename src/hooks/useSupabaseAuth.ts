@@ -30,7 +30,14 @@ export const useSupabaseAuth = () => {
                 .single();
               
               if (!error && data) {
-                setIsAdmin(data.role === 'admin');
+                const userIsAdmin = data.role === 'admin';
+                setIsAdmin(userIsAdmin);
+                
+                // Auto-redirect to admin if user is admin and just signed in
+                if (userIsAdmin && event === 'SIGNED_IN' && window.location.pathname !== '/admin') {
+                  console.log('Redirecting admin user to /admin');
+                  window.location.href = '/admin';
+                }
               }
             } catch (error) {
               console.error('Error checking admin role:', error);
@@ -140,6 +147,8 @@ export const useSupabaseAuth = () => {
           title: "Wylogowano pomyślnie",
           description: "Do zobaczenia!"
         });
+        // Redirect to home page after logout
+        window.location.href = '/';
       }
       return { error };
     } catch (error) {

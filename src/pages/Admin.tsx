@@ -133,28 +133,42 @@ const Admin = () => {
     }
   }, [stats, autoMigrationStarted, isAdmin, productsLoading, toast]);
 
-  // ProductManager handlers
+  // ProductManager handlers - Fixed defaultNewProduct with correct Product interface properties
   const defaultNewProduct: Product = {
     id: '',
     model: '',
-    brand: '',
-    category: '',
-    description: '',
+    image: '', // First image URL for backward compatibility
+    images: [], // Array of image URLs
+    shortDescription: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     specs: {
-      serialNumber: '',
+      // Main section (always visible)
       productionYear: new Date().getFullYear().toString(),
-      condition: 'bardzo-dobry',
+      serialNumber: '',
+      mastLiftingCapacity: '0',
+      preliminaryLiftingCapacity: '0',
       workingHours: '0',
       liftHeight: '0',
+      minHeight: '0',
+      preliminaryLifting: '',
+      battery: '',
+      condition: 'bardzo-dobry',
+      
+      // Expandable section (hidden by default)
+      driveType: '',
+      mast: '',
+      freeStroke: '0',
+      dimensions: '',
+      wheels: '',
+      operatorPlatform: '',
+      additionalOptions: '',
+      additionalDescription: '',
+      
+      // Legacy fields for backward compatibility
       capacity: '0',
-      fuelType: 'electric',
-      transmission: 'automatic'
-    },
-    images: [],
-    isAvailable: true,
-    isFeatured: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+      charger: ''
+    }
   };
 
   const handleEdit = (product: Product) => {
