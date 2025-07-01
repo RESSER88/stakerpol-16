@@ -71,9 +71,9 @@ const Admin = () => {
     description: '',
     specs: {
       serialNumber: '',
-      year: new Date().getFullYear(),
+      year: new Date().getFullYear().toString(),
       condition: 'bardzo-dobry',
-      hours: 0,
+      hours: '0',
       liftHeight: 0,
       capacity: 0,
       fuelType: 'electric',
