@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -74,8 +73,8 @@ const Admin = () => {
       year: new Date().getFullYear().toString(),
       condition: 'bardzo-dobry',
       hours: '0',
-      liftHeight: 0,
-      capacity: 0,
+      liftHeight: '0',
+      capacity: '0',
       fuelType: 'electric',
       transmission: 'automatic'
     },
