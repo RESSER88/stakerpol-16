@@ -19,7 +19,7 @@ const ProductImageManager = ({
   maxImages = 10, 
   currentImages = [],
   className,
-  useSupabaseStorage = false
+  useSupabaseStorage = true // Domyślnie używamy Supabase Storage
 }: ProductImageManagerProps) => {
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState<string[]>(currentImages);
@@ -28,6 +28,8 @@ const ProductImageManager = ({
 
   const uploadToSupabaseStorage = async (file: File, fileName: string): Promise<string | null> => {
     try {
+      console.log('Uploading to Supabase Storage:', fileName);
+      
       const { data, error } = await supabase.storage
         .from('product-images')
         .upload(fileName, file, {
@@ -45,6 +47,7 @@ const ProductImageManager = ({
         .from('product-images')
         .getPublicUrl(data.path);
 
+      console.log('Successfully uploaded to:', publicUrl);
       return publicUrl;
     } catch (error) {
       console.error('Error with Supabase Storage upload:', error);
@@ -93,7 +96,8 @@ const ProductImageManager = ({
         if (useSupabaseStorage) {
           // Upload to Supabase Storage
           const timestamp = Date.now();
-          const fileName = `product-${timestamp}-${i}.webp`;
+          const randomId = Math.random().toString(36).substring(2, 15);
+          const fileName = `product-${timestamp}-${randomId}.webp`;
           const uploadedUrl = await uploadToSupabaseStorage(optimizedFile, fileName);
           
           if (!uploadedUrl) {
@@ -107,7 +111,7 @@ const ProductImageManager = ({
           
           finalUrl = uploadedUrl;
         } else {
-          // Create local preview
+          // Create local preview (fallback)
           finalUrl = await createImagePreview(optimizedFile);
         }
 
@@ -121,7 +125,7 @@ const ProductImageManager = ({
       if (newPreviews.length > 0) {
         toast({
           title: "Zdjęcia dodane",
-          description: `Dodano ${newPreviews.length} ${useSupabaseStorage ? 'zdjęć do Supabase Storage' : 'zoptymalizowanych zdjęć'}`
+          description: `Dodano ${newPreviews.length} zoptymalizowanych zdjęć do Supabase Storage`
         });
       }
     } catch (error) {
@@ -163,6 +167,8 @@ const ProductImageManager = ({
         await supabase.storage
           .from('product-images')
           .remove([fileName]);
+        
+        console.log('Deleted file from storage:', fileName);
       } catch (error) {
         console.error('Error deleting from Supabase Storage:', error);
       }
@@ -246,7 +252,7 @@ const ProductImageManager = ({
           </p>
           <p className="text-sm text-gray-500 mb-6">
             Obsługiwane formaty: JPG, PNG, WebP • 
-            {useSupabaseStorage ? ' Upload do Supabase Storage • ' : ' Automatyczna optymalizacja • '}
+            Automatyczny upload do Supabase Storage • 
             Max 50MB
           </p>
           
@@ -270,7 +276,7 @@ const ProductImageManager = ({
               {uploading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  {useSupabaseStorage ? 'Przesyłanie do Storage...' : 'Przetwarzanie...'}
+                  Przesyłanie do Storage...
                 </>
               ) : (
                 <>
@@ -287,7 +293,7 @@ const ProductImageManager = ({
         <div className="space-y-4">
           <h4 className="font-semibold text-stakerpol-navy">
             Podgląd zdjęć ({previews.length}/{maxImages})
-            {useSupabaseStorage && <span className="text-sm text-green-600 ml-2">(Supabase Storage)</span>}
+            <span className="text-sm text-green-600 ml-2">(Supabase Storage)</span>
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

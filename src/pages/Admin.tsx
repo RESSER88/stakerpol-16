@@ -1,272 +1,232 @@
 
-import Layout from '@/components/layout/Layout';
+import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench } from 'lucide-react';
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
-import { Button } from '@/components/ui/button';
-import { LogOut, Loader2, Wifi, WifiOff } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 const Admin = () => {
-  const { user, loading, isAdmin, signOut } = useSupabaseAuth();
-  const supabaseHook = useSupabaseProducts();
+  const { user, isLoading: authLoading, hasRole } = useSupabaseAuth();
+  const { products, isLoading: productsLoading } = useSupabaseProducts();
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    base64Images: 0,
+    storageImages: 0
+  });
   const { toast } = useToast();
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'syncing'>('connected');
 
-  // State management for ProductManager
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productImages, setProductImages] = useState<string[]>([]);
-
-  // Monitor connection status
   useEffect(() => {
-    if (supabaseHook.isAddingProduct || supabaseHook.isUpdatingProduct || supabaseHook.isDeletingProduct) {
-      setConnectionStatus('syncing');
-    } else if (supabaseHook.error) {
-      setConnectionStatus('disconnected');
-    } else {
-      setConnectionStatus('connected');
-    }
-  }, [supabaseHook.isAddingProduct, supabaseHook.isUpdatingProduct, supabaseHook.isDeletingProduct, supabaseHook.error]);
+    if (!productsLoading && products) {
+      const totalProducts = products.length;
+      let base64Count = 0;
+      let storageCount = 0;
 
-  const defaultNewProduct: Product = {
-    id: '',
-    model: '',
-    image: '',
-    images: [],
-    shortDescription: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    specs: {
-      productionYear: '',
-      mastLiftingCapacity: '',
-      preliminaryLiftingCapacity: '',
-      workingHours: '',
-      liftHeight: '',
-      minHeight: '',
-      preliminaryLifting: '',
-      battery: '',
-      condition: '',
-      serialNumber: '',
-      driveType: '',
-      mast: '',
-      freeStroke: '',
-      dimensions: '',
-      wheels: '',
-      operatorPlatform: '',
-      additionalOptions: '',
-      additionalDescription: '',
-      capacity: '',
-      charger: ''
-    }
-  };
+      products.forEach(product => {
+        if (product.images) {
+          product.images.forEach(img => {
+            if (img.startsWith('data:')) {
+              base64Count++;
+            } else if (img.includes('supabase.co/storage')) {
+              storageCount++;
+            }
+          });
+        }
+      });
 
-  const handleEdit = (product: Product) => {
-    console.log('Editing product:', product);
-    setSelectedProduct(product);
-    setProductImages(product.images || [product.image].filter(Boolean));
-    setIsEditDialogOpen(true);
-  };
-  
-  const handleAdd = () => {
-    console.log('Adding new product');
-    setSelectedProduct(null);
-    setProductImages([]);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleCopy = (product: Product) => {
-    const timestamp = new Date().toISOString();
-    const uniqueId = `copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const copiedProduct = {
-      ...product,
-      id: uniqueId,
-      model: `${product.model} (kopia)`,
-      specs: {
-        ...product.specs,
-        serialNumber: product.specs.serialNumber ? `${product.specs.serialNumber}-COPY` : `COPY-${Date.now()}`
-      },
-      createdAt: timestamp,
-      updatedAt: timestamp
-    };
-    
-    console.log('Copying product:', copiedProduct);
-    setSelectedProduct(copiedProduct);
-    setProductImages(product.images || [product.image].filter(Boolean));
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDelete = (product: Product) => {
-    if (confirm(`Czy na pewno chcesz usunąć produkt ${product.model} z bazy danych? Ta operacja jest nieodwracalna.`)) {
-      console.log('Deleting product:', product.id);
-      supabaseHook.deleteProduct(product.id);
-      toast({
-        title: "Usuwanie produktu...",
-        description: `Produkt ${product.model} zostanie usunięty z bazy danych w ciągu kilku sekund.`,
-        duration: 4000
+      setStats({
+        totalProducts,
+        base64Images: base64Count,
+        storageImages: storageCount
       });
     }
-  };
+  }, [products, productsLoading]);
 
-  if (loading) {
+  if (authLoading) {
     return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stakerpol-orange mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Ładowanie panelu administracyjnego...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+          <p className="text-gray-600">Sprawdzanie uprawnień...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (!user) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <AdminLogin />
-        </div>
-      </Layout>
-    );
+    return <AdminLogin />;
   }
 
-  if (!isAdmin) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-stakerpol-navy mb-4">Brak uprawnień</h1>
-            <p className="text-muted-foreground mb-4">
-              Nie masz uprawnień administratora do dostępu do tego panelu.
-            </p>
-            <Button onClick={signOut} variant="outline">
-              <LogOut className="mr-2 h-4 w-4" />
-              Wyloguj się
-            </Button>
-          </div>
-        </div>
-      </Layout>
-    );
+  if (!hasRole('admin')) {
+    return <Navigate to="/" replace />;
   }
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Wylogowano",
-        description: "Zostałeś pomyślnie wylogowany z panelu administracyjnego",
-        duration: 3000
-      });
-    } catch (error) {
-      toast({
-        title: "Błąd wylogowania",
-        description: "Wystąpił problem podczas wylogowywania",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Props for ProductManager
-  const productManagerProps = {
-    // State
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    selectedProduct,
-    productImages,
-    setProductImages,
-    products: supabaseHook.products,
-    defaultNewProduct,
-    
-    // Actions
-    handleEdit,
-    handleAdd,
-    handleCopy,
-    handleDelete,
-    addProduct: (product: any, images: string[]) => {
-      supabaseHook.addProduct(product, images);
-    },
-    updateProduct: (product: any, images: string[]) => {
-      supabaseHook.updateProduct(product, images);
-    }
-  };
-
-  const getConnectionIcon = () => {
-    switch (connectionStatus) {
-      case 'syncing':
-        return <Loader2 className="h-3 w-3 animate-spin text-blue-600" />;
-      case 'disconnected':
-        return <WifiOff className="h-3 w-3 text-red-600" />;
-      default:
-        return <Wifi className="h-3 w-3 text-green-600" />;
-    }
-  };
-
-  const getConnectionText = () => {
-    switch (connectionStatus) {
-      case 'syncing':
-        return 'Synchronizacja w toku...';
-      case 'disconnected':
-        return 'Brak połączenia z bazą danych';
-      default:
-        return `Połączono z bazą danych (${supabaseHook.products.length} produktów)`;
-    }
-  };
 
   return (
-    <Layout>
-      <div className="container-custom py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-stakerpol-navy">Panel Administracyjny</h1>
-            <p className="text-sm text-muted-foreground">
-              Zalogowany jako: <span className="font-semibold">{user.email}</span>
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              {getConnectionIcon()}
-              <p className="text-xs" style={{ color: connectionStatus === 'disconnected' ? '#dc2626' : connectionStatus === 'syncing' ? '#2563eb' : '#16a34a' }}>
-                {getConnectionText()}
-              </p>
-            </div>
-            {connectionStatus === 'connected' && (
-              <p className="text-xs text-blue-600 mt-1">
-                ⚡ Zmiany będą widoczne na stronie publicznej w czasie rzeczywistym
-              </p>
-            )}
-          </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="text-sm"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Wyloguj
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-stakerpol-navy mb-2">
+            Panel Administracyjny
+          </h1>
+          <p className="text-gray-600">
+            Zarządzanie produktami i systemem
+          </p>
         </div>
-        
-        <ProductManager {...productManagerProps} />
-        
-        {(supabaseHook.isAddingProduct || supabaseHook.isUpdatingProduct || supabaseHook.isDeletingProduct) && (
-          <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg border border-blue-200">
-            <div className="flex items-center gap-2 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin text-stakerpol-orange" />
-              <span>
-                {supabaseHook.isAddingProduct && 'Dodawanie produktu do bazy danych...'}
-                {supabaseHook.isUpdatingProduct && 'Aktualizowanie produktu w bazie danych...'}
-                {supabaseHook.isDeletingProduct && 'Usuwanie produktu z bazy danych...'}
-              </span>
+
+        <Tabs defaultValue="products" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Produkty
+            </TabsTrigger>
+            <TabsTrigger value="images" className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Migracja zdjęć
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Statystyki
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Ustawienia
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products">
+            <ProductManager />
+          </TabsContent>
+
+          <TabsContent value="images">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="h-5 w-5" />
+                    Status obrazów
+                  </CardTitle>
+                  <CardDescription>
+                    Aktualne statystyki przechowywania obrazów produktów
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-stakerpol-navy">{stats.totalProducts}</div>
+                      <div className="text-sm text-gray-600">Produktów</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">{stats.base64Images}</div>
+                      <div className="text-sm text-gray-600">Obrazów base64</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{stats.storageImages}</div>
+                      <div className="text-sm text-gray-600">W Storage</div>
+                    </div>
+                  </div>
+                  
+                  {stats.base64Images > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Wrench className="h-4 w-4 text-yellow-600" />
+                        <span className="font-semibold text-yellow-800">
+                          Wymagana migracja
+                        </span>
+                      </div>
+                      <p className="text-sm text-yellow-700">
+                        Znaleziono {stats.base64Images} obrazów przechowywanych jako base64. 
+                        Migracja do Supabase Storage znacznie poprawi wydajność systemu.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <ImageMigrationTool />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Zmiany będą widoczne na stronie w ciągu kilku sekund
-            </p>
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Produkty</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-stakerpol-navy mb-2">
+                    {stats.totalProducts}
+                  </div>
+                  <p className="text-gray-600">Całkowita liczba produktów</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Obrazy</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Base64:</span>
+                      <Badge variant={stats.base64Images > 0 ? "destructive" : "secondary"}>
+                        {stats.base64Images}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Storage:</span>
+                      <Badge variant="default">
+                        {stats.storageImages}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ustawienia systemu</CardTitle>
+                <CardDescription>
+                  Konfiguracja i zarządzanie systemem
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">Supabase Storage</h3>
+                      <p className="text-sm text-gray-600">
+                        Bucket 'product-images' skonfigurowany
+                      </p>
+                    </div>
+                    <Badge variant="default">Aktywny</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">Realtime Sync</h3>
+                      <p className="text-sm text-gray-600">
+                        Synchronizacja w czasie rzeczywistym
+                      </p>
+                    </div>
+                    <Badge variant="default">Włączony</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-    </Layout>
+    </div>
   );
 };
 
