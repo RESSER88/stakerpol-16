@@ -70,11 +70,11 @@ const Admin = () => {
     description: '',
     specs: {
       serialNumber: '',
-      year: new Date().getFullYear().toString(),
+      productionYear: new Date().getFullYear().toString(),
       condition: 'bardzo-dobry',
-      hours: '0',
+      workingHours: '0',
       liftHeight: '0',
-      capacity: '0',
+      liftCapacity: '0',
       fuelType: 'electric',
       transmission: 'automatic'
     },
