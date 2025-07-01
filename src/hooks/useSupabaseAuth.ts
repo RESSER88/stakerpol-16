@@ -20,7 +20,7 @@ export const useSupabaseAuth = () => {
       async (event, session) => {
         if (!mounted) return;
 
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('🔐 Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -28,6 +28,7 @@ export const useSupabaseAuth = () => {
           // Check admin role with proper error handling
           setAdminLoading(true);
           try {
+            console.log('👤 Checking admin role for user:', session.user.id);
             const { data, error } = await supabase
               .from('user_roles')
               .select('role')
@@ -38,30 +39,32 @@ export const useSupabaseAuth = () => {
             
             if (!error && data) {
               const userIsAdmin = data.role === 'admin';
+              console.log('🛡️ User role check result:', data.role, '| isAdmin:', userIsAdmin);
               setIsAdmin(userIsAdmin);
               
               // Auto-redirect admin users to admin panel after successful sign in
               if (userIsAdmin && event === 'SIGNED_IN') {
-                console.log('Admin user signed in, redirecting to /admin');
+                console.log('🚀 Admin user signed in, redirecting to /admin');
                 // Use setTimeout to avoid redirect conflicts
                 setTimeout(() => {
                   if (window.location.pathname !== '/admin') {
                     window.location.href = '/admin';
                   }
-                }, 500);
+                }, 1000);
               }
             } else {
-              console.log('User role check failed:', error?.message || 'No role found');
+              console.log('⚠️ User role check failed:', error?.message || 'No role found');
               setIsAdmin(false);
             }
           } catch (error) {
-            console.error('Error checking admin role:', error);
+            console.error('❌ Error checking admin role:', error);
             if (mounted) setIsAdmin(false);
           } finally {
             if (mounted) setAdminLoading(false);
           }
         } else {
           // User logged out
+          console.log('👋 User logged out');
           setIsAdmin(false);
           setAdminLoading(false);
         }
@@ -73,9 +76,12 @@ export const useSupabaseAuth = () => {
     // THEN check for existing session
     const initializeAuth = async () => {
       try {
+        console.log('🔍 Checking for existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Session check error:', error);
+          console.error('❌ Session check error:', error);
+        } else {
+          console.log('✅ Session check complete:', session ? 'Found session' : 'No session');
         }
         
         if (!mounted) return;
@@ -85,7 +91,7 @@ export const useSupabaseAuth = () => {
         }
         // Session will be handled by the auth state change listener above
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('❌ Auth initialization error:', error);
         if (mounted) setLoading(false);
       }
     };
@@ -101,7 +107,7 @@ export const useSupabaseAuth = () => {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      console.log('Attempting sign in for:', email);
+      console.log('🔐 Attempting sign in for:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -109,7 +115,7 @@ export const useSupabaseAuth = () => {
       });
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error('❌ Sign in error:', error);
         toast({
           title: "Błąd logowania",
           description: error.message || "Nieprawidłowe dane logowania",
@@ -118,7 +124,7 @@ export const useSupabaseAuth = () => {
         return { error };
       }
 
-      console.log('Sign in successful:', data.user?.email);
+      console.log('✅ Sign in successful:', data.user?.email);
       toast({
         title: "Zalogowano pomyślnie",
         description: `Witaj ${data.user?.email}`
@@ -126,7 +132,7 @@ export const useSupabaseAuth = () => {
 
       return { data, error: null };
     } catch (error: any) {
-      console.error('Sign in exception:', error);
+      console.error('❌ Sign in exception:', error);
       toast({
         title: "Błąd",
         description: "Wystąpił nieoczekiwany błąd podczas logowania",
@@ -167,7 +173,7 @@ export const useSupabaseAuth = () => {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('❌ Sign up error:', error);
       return { error };
     } finally {
       setLoading(false);
@@ -176,14 +182,17 @@ export const useSupabaseAuth = () => {
 
   const signOut = async () => {
     try {
+      console.log('👋 Attempting sign out...');
       const { error } = await supabase.auth.signOut();
       if (error) {
+        console.error('❌ Sign out error:', error);
         toast({
           title: "Błąd wylogowania",
           description: error.message,
           variant: "destructive"
         });
       } else {
+        console.log('✅ Sign out successful');
         toast({
           title: "Wylogowano pomyślnie",
           description: "Do zobaczenia!"
@@ -195,7 +204,7 @@ export const useSupabaseAuth = () => {
       }
       return { error };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('❌ Sign out error:', error);
       return { error };
     }
   };
