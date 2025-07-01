@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircle, AlertCircle, Upload } from 'lucide-react';
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useMigrationMonitor } from '@/hooks/useMigrationMonitor';
 
 const Admin = () => {
   const { user, loading: authLoading, isAdmin, adminLoading } = useSupabaseAuth();
@@ -24,108 +25,15 @@ const Admin = () => {
     deleteProduct 
   } = useSupabaseProducts();
   
+  // Migration monitoring
+  const { stats: migrationStats, isMonitoring, completeMigration } = useMigrationMonitor(products || []);
+  
   // ProductManager state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
-  const [migrationCompleted, setMigrationCompleted] = useState(false);
   
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    base64Images: 0,
-    storageImages: 0,
-    migrationProgress: 0
-  });
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (!productsLoading && products) {
-      const totalProducts = products.length;
-      let base64Count = 0;
-      let storageCount = 0;
-      let totalImages = 0;
-
-      products.forEach(product => {
-        if (product.images) {
-          product.images.forEach(img => {
-            totalImages++;
-            if (img.startsWith('data:')) {
-              base64Count++;
-            } else if (img.includes('supabase.co/storage')) {
-              storageCount++;
-            }
-          });
-        }
-      });
-
-      const migrationProgress = totalImages > 0 ? Math.round((storageCount / totalImages) * 100) : 100;
-      const completed = base64Count === 0 && totalImages > 0;
-
-      setStats({
-        totalProducts,
-        base64Images: base64Count,
-        storageImages: storageCount,
-        migrationProgress
-      });
-
-      setMigrationCompleted(completed);
-
-      // Show migration status
-      if (completed && !migrationCompleted) {
-        toast({
-          title: "✅ Migracja obrazów ukończona!",
-          description: `Wszystkie ${storageCount} obrazów zostały przeniesione do Supabase Storage.`,
-          duration: 8000
-        });
-      } else if (base64Count > 0) {
-        console.log(`Migracja w toku: ${migrationProgress}% ukończone (${base64Count} obrazów do migracji)`);
-      }
-    }
-  }, [products, productsLoading, migrationCompleted, toast]);
-
-  // Complete remaining migration if needed
-  const completeMigration = async () => {
-    if (stats.base64Images === 0) {
-      toast({
-        title: "ℹ️ Migracja już ukończona",
-        description: "Wszystkie obrazy są już w Supabase Storage.",
-      });
-      return;
-    }
-
-    try {
-      toast({
-        title: "🚀 Dokańczam migrację obrazów",
-        description: `Migracja pozostałych ${stats.base64Images} obrazów...`,
-        duration: 5000
-      });
-
-      const { data, error } = await supabase.functions.invoke('migrate-images', {
-        body: { completeMigration: true }
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "✅ Migracja ukończona!",
-          description: `Pomyślnie przeniesiono ${data.stats?.success || stats.base64Images} obrazów.`,
-          duration: 8000
-        });
-        
-        // Refresh after successful migration
-        setTimeout(() => window.location.reload(), 2000);
-      }
-    } catch (error: any) {
-      console.error('Migration completion error:', error);
-      toast({
-        title: "⚠️ Błąd dokańczania migracji",
-        description: `Błąd: ${error.message}`,
-        variant: "destructive",
-        duration: 8000
-      });
-    }
-  };
 
   // ProductManager handlers - Fixed defaultNewProduct with correct Product interface properties
   const defaultNewProduct: Product = {
@@ -237,32 +145,45 @@ const Admin = () => {
             Zarządzanie produktami i systemem
           </p>
           
-          {/* Migration Status Card */}
+          {/* Enhanced Migration Status Card */}
           <div className="mt-4 p-4 border rounded-lg bg-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {migrationCompleted ? (
+                {migrationStats.isCompleted ? (
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 ) : (
                   <AlertCircle className="h-5 w-5 text-orange-600" />
                 )}
                 <div>
                   <h3 className="font-semibold">
-                    Status migracji obrazów: {stats.migrationProgress}%
+                    Status migracji obrazów: {migrationStats.migrationProgress}%
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {migrationCompleted 
-                      ? `Wszystkie ${stats.storageImages} obrazów w Supabase Storage`
-                      : `${stats.base64Images} obrazów do migracji, ${stats.storageImages} już przeniesione`
+                    {migrationStats.isCompleted 
+                      ? `Wszystkie ${migrationStats.storageImages} obrazów w Supabase Storage`
+                      : `${migrationStats.base64Images} obrazów do migracji, ${migrationStats.storageImages} już przeniesione`
                     }
                   </p>
                 </div>
               </div>
               
-              {!migrationCompleted && (
-                <Button onClick={completeMigration} className="cta-button">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Dokończ migrację
+              {!migrationStats.isCompleted && (
+                <Button 
+                  onClick={completeMigration} 
+                  className="cta-button"
+                  disabled={isMonitoring}
+                >
+                  {isMonitoring ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Migracja...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Dokończ migrację
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -322,20 +243,20 @@ const Admin = () => {
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-stakerpol-navy">{stats.totalProducts}</div>
-                      <div className="text-sm text-gray-600">Produktów</div>
+                      <div className="text-2xl font-bold text-stakerpol-navy">{migrationStats.totalImages}</div>
+                      <div className="text-sm text-gray-600">Obrazów ogółem</div>
                     </div>
                     <div className="text-center p-4 bg-orange-50 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">{stats.base64Images}</div>
+                      <div className="text-2xl font-bold text-orange-600">{migrationStats.base64Images}</div>
                       <div className="text-sm text-gray-600">Obrazów base64</div>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{stats.storageImages}</div>
+                      <div className="text-2xl font-bold text-green-600">{migrationStats.storageImages}</div>
                       <div className="text-sm text-gray-600">W Storage</div>
                     </div>
                   </div>
                   
-                  {stats.base64Images > 0 && (
+                  {migrationStats.base64Images > 0 && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Wrench className="h-4 w-4 text-yellow-600" />
@@ -344,16 +265,16 @@ const Admin = () => {
                         </span>
                       </div>
                       <p className="text-sm text-yellow-700">
-                        Znaleziono {stats.base64Images} obrazów do migracji. 
-                        System automatycznie migruje obrazy do Supabase Storage.
+                        Znaleziono {migrationStats.base64Images} obrazów do migracji. 
+                        Kliknij "Dokończ migrację" aby przenieść je do Supabase Storage.
                       </p>
                     </div>
                   )}
 
-                  {stats.base64Images === 0 && (
+                  {migrationStats.isCompleted && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <Package className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-green-600" />
                         <span className="font-semibold text-green-800">
                           Wszystkie obrazy są już w Supabase Storage!
                         </span>
@@ -378,7 +299,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-stakerpol-navy mb-2">
-                    {stats.totalProducts}
+                    {products?.length || 0}
                   </div>
                   <p className="text-gray-600">Całkowita liczba produktów</p>
                 </CardContent>
@@ -392,14 +313,14 @@ const Admin = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Base64:</span>
-                      <Badge variant={stats.base64Images > 0 ? "destructive" : "secondary"}>
-                        {stats.base64Images}
+                      <Badge variant={migrationStats.base64Images > 0 ? "destructive" : "secondary"}>
+                        {migrationStats.base64Images}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Storage:</span>
                       <Badge variant="default">
-                        {stats.storageImages}
+                        {migrationStats.storageImages}
                       </Badge>
                     </div>
                   </div>

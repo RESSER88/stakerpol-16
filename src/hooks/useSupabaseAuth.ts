@@ -13,15 +13,19 @@ export const useSupabaseAuth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is admin with proper loading state
+          // Check admin role with proper error handling
           setAdminLoading(true);
           try {
             const { data, error } = await supabase
@@ -30,73 +34,99 @@ export const useSupabaseAuth = () => {
               .eq('user_id', session.user.id)
               .single();
             
+            if (!mounted) return;
+            
             if (!error && data) {
               const userIsAdmin = data.role === 'admin';
               setIsAdmin(userIsAdmin);
               
-              // Auto-redirect to admin if user is admin and just signed in
-              if (userIsAdmin && event === 'SIGNED_IN' && window.location.pathname !== '/admin') {
-                console.log('Redirecting admin user to /admin');
+              // Auto-redirect admin users to admin panel after successful sign in
+              if (userIsAdmin && event === 'SIGNED_IN') {
+                console.log('Admin user signed in, redirecting to /admin');
+                // Use setTimeout to avoid redirect conflicts
                 setTimeout(() => {
-                  window.location.href = '/admin';
-                }, 100);
+                  if (window.location.pathname !== '/admin') {
+                    window.location.href = '/admin';
+                  }
+                }, 500);
               }
             } else {
-              console.log('User role not found or error:', error);
+              console.log('User role check failed:', error?.message || 'No role found');
               setIsAdmin(false);
             }
           } catch (error) {
             console.error('Error checking admin role:', error);
-            setIsAdmin(false);
+            if (mounted) setIsAdmin(false);
           } finally {
-            setAdminLoading(false);
+            if (mounted) setAdminLoading(false);
           }
         } else {
+          // User logged out
           setIsAdmin(false);
           setAdminLoading(false);
         }
         
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Session check error:', error);
+        }
+        
+        if (!mounted) return;
+        
+        if (!session) {
+          setLoading(false);
+        }
+        // Session will be handled by the auth state change listener above
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) setLoading(false);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting sign in for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Sign in error:', error);
         toast({
           title: "Błąd logowania",
-          description: error.message,
+          description: error.message || "Nieprawidłowe dane logowania",
           variant: "destructive"
         });
         return { error };
       }
 
+      console.log('Sign in successful:', data.user?.email);
       toast({
         title: "Zalogowano pomyślnie",
         description: `Witaj ${data.user?.email}`
       });
 
       return { data, error: null };
-    } catch (error) {
-      console.error('Sign in error:', error);
+    } catch (error: any) {
+      console.error('Sign in exception:', error);
       toast({
         title: "Błąd",
         description: "Wystąpił nieoczekiwany błąd podczas logowania",
@@ -159,7 +189,9 @@ export const useSupabaseAuth = () => {
           description: "Do zobaczenia!"
         });
         // Redirect to home page after logout
-        window.location.href = '/';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       }
       return { error };
     } catch (error) {
