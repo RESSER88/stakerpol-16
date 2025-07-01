@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +11,24 @@ import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench } from 'luc
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
-import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { useToast } from '@/hooks/use-toast';
+import { Product } from '@/types';
 
 const Admin = () => {
-  const { user, isLoading: authLoading, hasRole } = useSupabaseAuth();
-  const { products, isLoading: productsLoading } = useSupabaseProducts();
+  const { user, loading: authLoading, isAdmin } = useSupabaseAuth();
+  const { 
+    products, 
+    isLoading: productsLoading, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct 
+  } = useSupabaseProducts();
+  
+  // ProductManager state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productImages, setProductImages] = useState<string[]>([]);
+  
   const [stats, setStats] = useState({
     totalProducts: 0,
     base64Images: 0,
@@ -49,6 +62,70 @@ const Admin = () => {
     }
   }, [products, productsLoading]);
 
+  // ProductManager handlers
+  const defaultNewProduct: Product = {
+    id: '',
+    model: '',
+    brand: '',
+    category: '',
+    description: '',
+    specs: {
+      serialNumber: '',
+      year: new Date().getFullYear(),
+      condition: 'bardzo-dobry',
+      hours: 0,
+      liftHeight: 0,
+      capacity: 0,
+      fuelType: 'electric',
+      transmission: 'automatic'
+    },
+    images: [],
+    isAvailable: true,
+    isFeatured: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const handleEdit = (product: Product) => {
+    console.log('Editing product:', product);
+    setSelectedProduct(product);
+    setProductImages(product.images || []);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    console.log('Adding new product');
+    setSelectedProduct(defaultNewProduct);
+    setProductImages([]);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCopy = (product: Product) => {
+    console.log('Copying product:', product);
+    const copiedProduct = {
+      ...product,
+      id: '',
+      model: `${product.model} (kopia)`,
+      specs: {
+        ...product.specs,
+        serialNumber: `${product.specs.serialNumber}-COPY`
+      }
+    };
+    setSelectedProduct(copiedProduct);
+    setProductImages(product.images || []);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = async (product: Product) => {
+    if (window.confirm(`Czy na pewno chcesz usunąć produkt "${product.model}"?`)) {
+      try {
+        await deleteProduct(product.id);
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -64,7 +141,7 @@ const Admin = () => {
     return <AdminLogin />;
   }
 
-  if (!hasRole('admin')) {
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 
@@ -101,7 +178,21 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="products">
-            <ProductManager />
+            <ProductManager
+              isEditDialogOpen={isEditDialogOpen}
+              setIsEditDialogOpen={setIsEditDialogOpen}
+              selectedProduct={selectedProduct}
+              productImages={productImages}
+              setProductImages={setProductImages}
+              products={products}
+              defaultNewProduct={defaultNewProduct}
+              handleEdit={handleEdit}
+              handleAdd={handleAdd}
+              handleCopy={handleCopy}
+              handleDelete={handleDelete}
+              addProduct={addProduct}
+              updateProduct={updateProduct}
+            />
           </TabsContent>
 
           <TabsContent value="images">
