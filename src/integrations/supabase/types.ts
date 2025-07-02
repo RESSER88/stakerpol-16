@@ -125,6 +125,41 @@ export type Database = {
         }
         Relationships: []
       }
+      social_media_posts: {
+        Row: {
+          created_at: string | null
+          id: string
+          platform: string
+          post_id: string | null
+          posted_at: string | null
+          product_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          platform: string
+          post_id?: string | null
+          posted_at?: string | null
+          product_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          platform?: string
+          post_id?: string | null
+          posted_at?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_posts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -155,12 +190,32 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_rotation_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_unposted_product: {
+        Args: { platform_name: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      log_social_post: {
+        Args: {
+          product_uuid: string
+          platform_name: string
+          external_post_id?: string
+        }
+        Returns: Json
+      }
+      reset_platform_rotation: {
+        Args: { platform_name: string }
+        Returns: Json
       }
     }
     Enums: {
