@@ -195,7 +195,9 @@ export type Database = {
         Returns: Json
       }
       get_unposted_product: {
-        Args: { platform_name: string }
+        Args:
+          | { platform_name: string }
+          | { platform_name: string; auto_reset?: boolean }
         Returns: Json
       }
       has_role: {
