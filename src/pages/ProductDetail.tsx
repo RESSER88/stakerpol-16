@@ -10,6 +10,8 @@ import ProductImage from '@/components/products/ProductImage';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductHeader from '@/components/products/ProductHeader';
 import RelatedProducts from '@/components/products/RelatedProducts';
+import ProductSchema from '@/components/seo/ProductSchema';
+import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
 import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
@@ -53,8 +55,16 @@ const ProductDetail = () => {
     );
   }
 
+  const breadcrumbItems = [
+    { name: 'Strona główna', url: 'https://stakerpol.pl' },
+    { name: 'Produkty', url: 'https://stakerpol.pl/products' },
+    { name: product.model, url: `https://stakerpol.pl/products/${product.id}` }
+  ];
+
   return (
     <Layout>
+      <ProductSchema product={product} />
+      <BreadcrumbSchema items={breadcrumbItems} />
       <section id="product-details" className="bg-white py-12">
         <div className="container-custom">
           <ProductHeader />

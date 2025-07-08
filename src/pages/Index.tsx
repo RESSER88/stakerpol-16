@@ -6,6 +6,7 @@ import CallToAction from '@/components/ui/CallToAction';
 import ProductCard from '@/components/ui/ProductCard';
 import WhyChooseUs from '@/components/ui/WhyChooseUs';
 import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
+import LocalBusinessSchema from '@/components/seo/LocalBusinessSchema';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -67,6 +68,7 @@ const Index = () => {
 
   return (
     <Layout>
+      <LocalBusinessSchema />
       {/* Hero Section with Background Image */}
       <section 
         className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-toyota-black text-white min-h-[600px] flex items-center"
