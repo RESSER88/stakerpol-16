@@ -4,6 +4,21 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
 User-agent: Twitterbot
 Allow: /
 
@@ -12,3 +27,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemaps
+Sitemap: https://stakerpol.pl/sitemap.xml
+Sitemap: https://peztqgfmmnxaaoapzpbw.supabase.co/functions/v1/sitemap
+
+# GEO Feed for AI Search Engines
+# Schema.org structured data feed
+Sitemap: https://peztqgfmmnxaaoapzpbw.supabase.co/functions/v1/geo-feed
