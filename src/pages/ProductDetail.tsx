@@ -1,6 +1,7 @@
 
 import { useParams, Link } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import Layout from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -61,8 +62,48 @@ const ProductDetail = () => {
     { name: product.model, url: `https://stakerpol.pl/products/${product.id}` }
   ];
 
+  // Dynamic meta data
+  const getMetaTitle = () => {
+    const brand = product.model?.includes('Toyota') || product.model?.includes('BT') ? 'Toyota' : 'Toyota';
+    const serialNumber = product.specs?.serialNumber ? ` (${product.specs.serialNumber})` : '';
+    const type = product.specs?.driveType === 'Elektryczny' ? 'Wózek elektryczny' : 'Wózek widłowy';
+    return `${product.model}${serialNumber} - ${type} | Stakerpol`;
+  };
+
+  const getMetaDescription = () => {
+    const specs = [];
+    if (product.specs?.liftHeight) specs.push(`${product.specs.liftHeight}mm wysokość podnoszenia`);
+    if (product.specs?.mastLiftingCapacity) specs.push(`${product.specs.mastLiftingCapacity}kg udźwig`);
+    if (product.specs?.productionYear) specs.push(`rok ${product.specs.productionYear}`);
+    if (product.specs?.workingHours) specs.push(`${product.specs.workingHours}mth`);
+    
+    const specsText = specs.length > 0 ? ` - ${specs.join(', ')}` : '';
+    return `${product.shortDescription || product.model}${specsText}. Profesjonalna sprzedaż używanych wózków widłowych Toyota/BT. Sprawdź ofertę Stakerpol.`;
+  };
+
+  const getOgImage = () => {
+    if (product.images && product.images.length > 0) {
+      return product.images[0];
+    }
+    return product.image || '';
+  };
+
   return (
     <Layout>
+      <Helmet>
+        <title>{getMetaTitle()}</title>
+        <meta name="description" content={getMetaDescription()} />
+        <meta property="og:title" content={getMetaTitle()} />
+        <meta property="og:description" content={getMetaDescription()} />
+        <meta property="og:image" content={getOgImage()} />
+        <meta property="og:url" content={`https://stakerpol.pl/products/${product.id}`} />
+        <meta property="og:type" content="product" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={getMetaTitle()} />
+        <meta name="twitter:description" content={getMetaDescription()} />
+        <meta name="twitter:image" content={getOgImage()} />
+        <link rel="canonical" href={`https://stakerpol.pl/products/${product.id}`} />
+      </Helmet>
       <ProductSchema product={product} />
       <BreadcrumbSchema items={breadcrumbItems} />
       <section id="product-details" className="bg-white py-12">

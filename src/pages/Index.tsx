@@ -1,5 +1,6 @@
 
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/layout/Layout';
 import CallToAction from '@/components/ui/CallToAction';
@@ -68,6 +69,21 @@ const Index = () => {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Stakerpol - Wózki widłowe Toyota BT | Sprzedaż używanych wózków elektrycznych i spalinowych</title>
+        <meta name="description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe z serwisem. Sprawdź ofertę wózków paletowych w Stakerpol." />
+        <meta property="og:title" content="Stakerpol - Wózki widłowe Toyota BT | Sprzedaż używanych wózków" />
+        <meta property="og:description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe z serwisem." />
+        <meta property="og:image" content="/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png" />
+        <meta property="og:url" content="https://stakerpol.pl" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Stakerpol - Wózki widłowe Toyota BT" />
+        <meta name="twitter:description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe." />
+        <meta name="twitter:image" content="/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png" />
+        <link rel="canonical" href="https://stakerpol.pl" />
+        <meta name="keywords" content="wózki widłowe, toyota, bt, elektryczne, spalinowe, paleciaki, magazynowe, używane, serwis, stakerpol" />
+      </Helmet>
       <LocalBusinessSchema />
       {/* Hero Section with Background Image */}
       <section 
