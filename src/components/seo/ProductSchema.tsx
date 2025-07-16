@@ -114,7 +114,7 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
     return properties;
   };
 
-  const schema = {
+const schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": product.model,
@@ -137,16 +137,71 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
     "usedCondition": product.specs?.condition || "Używany",
     "operatingWeight": product.specs?.mastLiftingCapacity ? `${product.specs.mastLiftingCapacity} kg` : undefined,
     "additionalProperty": getAdditionalProperties(),
+    // AI Search Engine Optimization 2025
+    "aiSearchKeywords": [
+      "wózek widłowy używany",
+      "Toyota paletyzator",
+      "wózek elektryczny magazyn",
+      "sprzedaż wózków widłowych",
+      "używane wózki Toyota BT"
+    ],
+    "semanticDescription": `Profesjonalny używany wózek widłowy ${product.model} marki Toyota. Idealny do prac magazynowych, z udźwigiem ${product.specs?.mastLiftingCapacity || 'dostosowanym do potrzeb'} kg. Dostępny w Stakerpol - autoryzowanym dealerze Toyota Material Handling.`,
+    "voiceSearchOptimization": [
+      `Jaki jest udźwig wózka ${product.model}?`,
+      `Ile kosztuje wózek ${product.model}?`,
+      `Gdzie kupić używany wózek Toyota?`,
+      `Wózek widłowy ${product.model} specyfikacja`
+    ],
+    "geoTargeting": {
+      "@type": "Place",
+      "name": "Stakerpol - Sprzedaż wózków widłowych",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "ul. Energetyków 9c",
+        "addressLocality": "Niepołomice",
+        "postalCode": "32-005",
+        "addressCountry": "PL"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "50.0355",
+        "longitude": "20.2145"
+      },
+      "areaServed": [
+        "Kraków",
+        "Niepołomice", 
+        "Wieliczka",
+        "Tarnów",
+        "Nowy Sącz",
+        "Małopolska"
+      ]
+    },
     "offers": {
       "@type": "Offer",
       "availability": "https://schema.org/InStock",
-      "priceValidUntil": "2024-12-31",
+      "priceValidUntil": "2025-12-31",
       "businessFunction": "https://schema.org/Sell",
       "seller": {
         "@type": "Organization",
         "name": "Stakerpol",
         "url": "https://stakerpol.pl",
-        "telephone": "+48694133592"
+        "telephone": "+48694133592",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "ul. Energetyków 9c",
+          "addressLocality": "Niepołomice",
+          "postalCode": "32-005",
+          "addressCountry": "PL"
+        }
+      },
+      "areaServed": {
+        "@type": "GeoCircle",
+        "geoMidpoint": {
+          "@type": "GeoCoordinates", 
+          "latitude": "50.0355",
+          "longitude": "20.2145"
+        },
+        "geoRadius": "100000"
       }
     }
   };

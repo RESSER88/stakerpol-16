@@ -1,6 +1,5 @@
 
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/layout/Layout';
 import CallToAction from '@/components/ui/CallToAction';
@@ -10,6 +9,9 @@ import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
 import LocalBusinessSchema from '@/components/seo/LocalBusinessSchema';
 import WebsiteSchema from '@/components/seo/WebsiteSchema';
 import FAQSchema from '@/components/seo/FAQSchema';
+import ServiceSchema from '@/components/seo/ServiceSchema';
+import GeoTargetingSchema from '@/components/seo/GeoTargetingSchema';
+import AIOptimizedMetaTags from '@/components/seo/AIOptimizedMetaTags';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -71,24 +73,63 @@ const Index = () => {
 
   return (
     <Layout>
-      <Helmet>
-        <title>Stakerpol - Wózki widłowe Toyota BT | Sprzedaż używanych wózków elektrycznych i spalinowych</title>
-        <meta name="description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe z serwisem. Sprawdź ofertę wózków paletowych w Stakerpol." />
-        <meta property="og:title" content="Stakerpol - Wózki widłowe Toyota BT | Sprzedaż używanych wózków" />
-        <meta property="og:description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe z serwisem." />
-        <meta property="og:image" content="/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png" />
-        <meta property="og:url" content="https://stakerpol.pl" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Stakerpol - Wózki widłowe Toyota BT" />
-        <meta name="twitter:description" content="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe." />
-        <meta name="twitter:image" content="/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png" />
-        <link rel="canonical" href="https://stakerpol.pl" />
-        <meta name="keywords" content="wózki widłowe, toyota, bt, elektryczne, spalinowe, paleciaki, magazynowe, używane, serwis, stakerpol" />
-      </Helmet>
+      <AIOptimizedMetaTags 
+        title="Stakerpol - Wózki widłowe Toyota BT | Sprzedaż używanych wózków elektrycznych i spalinowych"
+        description="Profesjonalna sprzedaż używanych wózków widłowych Toyota i BT. Elektryczne i spalinowe paleciaki magazynowe z serwisem. Sprawdź ofertę wózków paletowych w Stakerpol."
+        keywords={[
+          "wózki widłowe",
+          "toyota",
+          "bt",
+          "elektryczne",
+          "spalinowe",
+          "paleciaki",
+          "magazynowe",
+          "używane",
+          "serwis",
+          "stakerpol",
+          "paletyzatory",
+          "logistyka",
+          "magazyn",
+          "transport wewnętrzny"
+        ]}
+        aiSearchOptimization={{
+          semanticKeywords: [
+            "wózki widłowe używane",
+            "Toyota paletyzator elektryczny",
+            "sprzedaż wózków magazynowych",
+            "serwis wózków widłowych Kraków",
+            "części zamienne Toyota BT",
+            "wózek widłowy do magazynu",
+            "paletyzator elektryczny używany",
+            "transport wewnętrzny magazyn"
+          ],
+          voiceSearchQueries: [
+            "gdzie kupić używany wózek widłowy",
+            "ile kosztuje wózek widłowy Toyota",
+            "jaki wózek widłowy do małego magazynu",
+            "serwis wózków widłowych w okolicy",
+            "używane wózki elektryczne na sprzedaż",
+            "Toyota BT wózki widłowe cena",
+            "najlepszy wózek widłowy do palet",
+            "gdzie naprawić wózek widłowy"
+          ],
+          entityContext: [
+            "Toyota Material Handling",
+            "BT wózki widłowe",
+            "paletyzatory elektryczne",
+            "logistyka magazynowa",
+            "handling equipment",
+            "Stakerpol autoryzowany dealer",
+            "wózki widłowe Małopolska",
+            "transport wewnętrzny"
+          ]
+        }}
+      />
       <LocalBusinessSchema />
       <WebsiteSchema />
       <FAQSchema />
+      <ServiceSchema />
+      <GeoTargetingSchema />
       {/* Hero Section with Background Image */}
       <section 
         className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-toyota-black text-white min-h-[600px] flex items-center"

@@ -4,6 +4,7 @@ import ProductCard from '@/components/ui/ProductCard';
 import CallToAction from '@/components/ui/CallToAction';
 import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
 import ProductListSchema from '@/components/seo/ProductListSchema';
+import AIOptimizedMetaTags from '@/components/seo/AIOptimizedMetaTags';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
@@ -59,6 +60,46 @@ const Products = () => {
 
   return (
     <Layout>
+      <AIOptimizedMetaTags 
+        title="Wózki widłowe Toyota BT - Katalog używanych paletyzatorów | Stakerpol"
+        description="Przeglądaj naszą ofertę używanych wózków widłowych Toyota BT. Elektryczne paletyzatory w doskonałym stanie z gwarancją. Sprawdź dostępne modele w Stakerpol."
+        keywords={[
+          "wózki widłowe katalog",
+          "Toyota BT paletyzatory",
+          "używane wózki elektryczne",
+          "katalog wózków widłowych",
+          "paletyzatory na sprzedaż",
+          "wózki magazynowe oferta",
+          "Toyota forklift używane",
+          "elektryczne wózki widłowe"
+        ]}
+        aiSearchOptimization={{
+          semanticKeywords: [
+            "katalog wózków widłowych Toyota",
+            "używane paletyzatory BT",
+            "wózki elektryczne na sprzedaż",
+            "oferta wózków magazynowych",
+            "Toyota forklift używane Kraków",
+            "paletyzatory elektryczne katalog",
+            "wózki widłowe dostępne modele"
+          ],
+          voiceSearchQueries: [
+            "jakie wózki widłowe są dostępne",
+            "pokażmi dostępne wózki Toyota",
+            "które modele wózków są na sprzedaż",
+            "ile jest dostępnych wózków",
+            "jakie są najnowsze wózki w ofercie",
+            "które wózki widłowe polecasz"
+          ],
+          entityContext: [
+            "Toyota Material Handling katalog",
+            "BT wózki widłowe modele",
+            "paletyzatory elektryczne oferta",
+            "używane wózki magazynowe",
+            "Stakerpol dostępne produkty"
+          ]
+        }}
+      />
       <ProductListSchema products={products} />
       <section className="bg-gradient-to-b from-stakerpol-lightgray to-white py-12">
         <div className="container-custom">

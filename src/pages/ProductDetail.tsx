@@ -1,7 +1,6 @@
 
 import { useParams, Link } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import Layout from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -14,6 +13,7 @@ import RelatedProducts from '@/components/products/RelatedProducts';
 import ProductSchema from '@/components/seo/ProductSchema';
 import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
 import ImageObjectSchema from '@/components/seo/ImageObjectSchema';
+import AIOptimizedMetaTags from '@/components/seo/AIOptimizedMetaTags';
 import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
@@ -91,20 +91,52 @@ const ProductDetail = () => {
 
   return (
     <Layout>
-      <Helmet>
-        <title>{getMetaTitle()}</title>
-        <meta name="description" content={getMetaDescription()} />
-        <meta property="og:title" content={getMetaTitle()} />
-        <meta property="og:description" content={getMetaDescription()} />
-        <meta property="og:image" content={getOgImage()} />
-        <meta property="og:url" content={`https://stakerpol.pl/products/${product.id}`} />
-        <meta property="og:type" content="product" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={getMetaTitle()} />
-        <meta name="twitter:description" content={getMetaDescription()} />
-        <meta name="twitter:image" content={getOgImage()} />
-        <link rel="canonical" href={`https://stakerpol.pl/products/${product.id}`} />
-      </Helmet>
+      <AIOptimizedMetaTags 
+        title={getMetaTitle()}
+        description={getMetaDescription()}
+        keywords={[
+          product.model,
+          'Toyota wózek widłowy',
+          'BT paletyzator',
+          'wózek elektryczny używany',
+          'paletyzator magazynowy',
+          'Toyota forklift',
+          'wózek widłowy ' + (product.specs?.productionYear || ''),
+          'udźwig ' + (product.specs?.mastLiftingCapacity || '') + 'kg',
+          'wysokość ' + (product.specs?.liftHeight || '') + 'mm'
+        ]}
+        aiSearchOptimization={{
+          semanticKeywords: [
+            `${product.model} specyfikacja techniczna`,
+            `Toyota ${product.model} parametry`,
+            `wózek widłowy ${product.model} używany`,
+            `${product.model} cena sprzedaż`,
+            `paletyzator ${product.model} magazyn`,
+            `BT ${product.model} elektryczny`,
+            `${product.model} udźwig wysokość`,
+            `Toyota forklift ${product.model} części`
+          ],
+          voiceSearchQueries: [
+            `jaki jest udźwig ${product.model}`,
+            `ile kosztuje ${product.model}`,
+            `jakie są parametry ${product.model}`,
+            `gdzie kupić ${product.model}`,
+            `czy ${product.model} jest dobry do magazynu`,
+            `jaką ma wysokość podnoszenia ${product.model}`,
+            `ile motogodzin ma ${product.model}`,
+            `czy ${product.model} jest elektryczny`
+          ],
+          entityContext: [
+            `Toyota ${product.model} Material Handling`,
+            `BT ${product.model} wózek widłowy`,
+            `${product.model} paletyzator elektryczny`,
+            `${product.model} transport wewnętrzny`,
+            `${product.model} logistyka magazynowa`,
+            `Toyota forklift ${product.model} używany`,
+            `${product.model} handling equipment`
+          ]
+        }}
+      />
       <ProductSchema product={product} />
       <BreadcrumbSchema items={breadcrumbItems} />
       <ImageObjectSchema product={product} />
