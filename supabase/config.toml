@@ -1,1 +1,48 @@
 project_id = "peztqgfmmnxaaoapzpbw"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+enabled = true
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[edge_runtime]
+enabled = true
+ip_version = "ipv4"
+port = 54325
+policy = "PerRequestPolicy"
+inspector_port = 8084
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://lovable.dev"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.geo-feed]
+verify_jwt = false
+
+[functions.migrate-images]
+verify_jwt = false
+
+[functions.social-media-rotation]
+verify_jwt = false

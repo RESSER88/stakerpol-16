@@ -205,6 +205,10 @@ export type Database = {
           | { platform_name: string; auto_reset?: boolean }
         Returns: Json
       }
+      get_unposted_product_debug: {
+        Args: { platform_name: string; auto_reset?: boolean }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _user_id: string
