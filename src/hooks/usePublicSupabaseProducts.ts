@@ -8,8 +8,11 @@ import {
   SupabaseProduct,
   SupabaseProductImage
 } from '@/types/supabase';
+import { useErrorHandler } from './useErrorHandler';
 
 export const usePublicSupabaseProducts = () => {
+  const { handleError } = useErrorHandler();
+  
   // Fetch products with optimized caching strategy for public pages
   const { data: products = [], isLoading, error, refetch } = useQuery({
     queryKey: ['public-products'],
@@ -58,50 +61,87 @@ export const usePublicSupabaseProducts = () => {
     refetchInterval: 30 * 1000, // Auto-refetch every 30 seconds for real-time sync
   });
 
-  // Enhanced realtime subscription for immediate sync with admin panel
+  // Enhanced realtime subscription with retry logic
   useEffect(() => {
     console.log('Setting up realtime subscriptions for public pages...');
     
-    // Products subscription with immediate refetch
-    const productsChannel = supabase
-      .channel('public-products-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products'
-        },
-        (payload) => {
-          console.log('Public products realtime update detected:', payload);
-          refetch();
-        }
-      )
-      .subscribe();
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const setupSubscriptions = () => {
+      // Products subscription with immediate refetch and debouncing
+      const productsChannel = supabase
+        .channel('public-products-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products'
+          },
+          (payload) => {
+            console.log('Public products realtime update detected:', payload);
+            // Debounce refetch to avoid multiple rapid calls
+            setTimeout(() => refetch(), 500);
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Products realtime subscription active');
+            retryCount = 0;
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Products realtime subscription error');
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`Retrying subscription... (${retryCount}/${maxRetries})`);
+              setTimeout(setupSubscriptions, 2000 * retryCount);
+            } else {
+              handleError(new Error('Products realtime subscription failed'), {
+                context: 'Realtime - public products',
+                silent: true
+              });
+            }
+          }
+        });
 
-    // Images subscription with immediate refetch
-    const imagesChannel = supabase
-      .channel('public-product-images-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'product_images'
-        },
-        (payload) => {
-          console.log('Public product images realtime update detected:', payload);
-          refetch();
-        }
-      )
-      .subscribe();
+      // Images subscription with immediate refetch and debouncing
+      const imagesChannel = supabase
+        .channel('public-product-images-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'product_images'
+          },
+          (payload) => {
+            console.log('Public product images realtime update detected:', payload);
+            setTimeout(() => refetch(), 500);
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Images realtime subscription active');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Images realtime subscription error');
+            handleError(new Error('Images realtime subscription failed'), {
+              context: 'Realtime - public images',
+              silent: true
+            });
+          }
+        });
+
+      return [productsChannel, imagesChannel];
+    };
+
+    const [productsChannel, imagesChannel] = setupSubscriptions();
 
     return () => {
       console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(imagesChannel);
     };
-  }, [refetch]);
+  }, [refetch, handleError]);
 
   return {
     products,

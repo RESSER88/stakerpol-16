@@ -11,9 +11,11 @@ import {
   SupabaseProduct,
   SupabaseProductImage
 } from '@/types/supabase';
+import { useErrorHandler } from './useErrorHandler';
 
 export const useSupabaseProducts = () => {
   const queryClient = useQueryClient();
+  const { handleError, handleAsyncError } = useErrorHandler();
   const { toast } = useToast();
 
   // Enhanced product fetching with better error handling

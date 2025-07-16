@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useErrorHandler } from './useErrorHandler';
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -11,6 +12,7 @@ export const useSupabaseAuth = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminLoading, setAdminLoading] = useState(false);
   const { toast } = useToast();
+  const { handleError } = useErrorHandler();
 
   useEffect(() => {
     let mounted = true;
@@ -109,17 +111,18 @@ export const useSupabaseAuth = () => {
       setLoading(true);
       console.log('🔐 Attempting sign in for:', email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Login timeout')), 15000)
+        )
+      ]) as any;
 
       if (error) {
         console.error('❌ Sign in error:', error);
-        toast({
+        handleError(error, { 
           title: "Błąd logowania",
-          description: error.message || "Nieprawidłowe dane logowania",
-          variant: "destructive"
+          context: "Auth - signIn"
         });
         return { error };
       }
@@ -133,10 +136,9 @@ export const useSupabaseAuth = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('❌ Sign in exception:', error);
-      toast({
-        title: "Błąd",
-        description: "Wystąpił nieoczekiwany błąd podczas logowania",
-        variant: "destructive"
+      handleError(error, { 
+        title: "Błąd logowania",
+        context: "Auth - signIn"
       });
       return { error };
     } finally {
