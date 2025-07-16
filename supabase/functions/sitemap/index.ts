@@ -20,10 +20,19 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Fetch all products
+    // Fetch all products with images
     const { data: products, error } = await supabase
       .from('products')
-      .select('id, name, updated_at')
+      .select(`
+        id, 
+        name, 
+        updated_at,
+        product_images (
+          image_url,
+          alt_text,
+          display_order
+        )
+      `)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -45,24 +54,50 @@ serve(async (req) => {
       { url: '/testimonials', lastmod: now, changefreq: 'monthly', priority: '0.7' },
     ];
 
-    // Product pages
-    const productPages = (products || []).map(product => ({
-      url: `/products/${product.id}`,
-      lastmod: product.updated_at || now,
-      changefreq: 'weekly',
-      priority: '0.8'
-    }));
+    // Product pages with images
+    const productPages = (products || []).map(product => {
+      const productImages = product.product_images
+        ?.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+        ?.slice(0, 5) // Limit to 5 images per product
+        ?.map(img => ({
+          url: img.image_url,
+          caption: img.alt_text || `${product.name} - wózek widłowy elektryczny Stakerpol`
+        })) || [];
+      
+      return {
+        url: `/products/${product.id}`,
+        lastmod: product.updated_at || now,
+        changefreq: 'weekly',
+        priority: '0.8',
+        title: product.name,
+        images: productImages
+      };
+    });
 
     const allPages = [...staticPages, ...productPages];
 
     const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(page => `  <url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${allPages.map(page => {
+  let imageElements = '';
+  
+  // Add image elements for product pages
+  if (page.url.startsWith('/products/') && page.images && page.images.length > 0) {
+    imageElements = page.images.map(img => `
+    <image:image>
+      <image:loc>${img.url}</image:loc>
+      <image:caption>${img.caption || `Wózek widłowy elektryczny - ${page.title || 'Stakerpol'}`}</image:caption>
+    </image:image>`).join('');
+  }
+  
+  return `  <url>
     <loc>${baseUrl}${page.url}</loc>
     <lastmod>${page.lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`).join('\n')}
+    <priority>${page.priority}</priority>${imageElements}
+  </url>`;
+}).join('\n')}
 </urlset>`;
 
     console.log(`✅ Generated sitemap with ${allPages.length} URLs`);
