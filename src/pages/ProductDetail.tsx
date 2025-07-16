@@ -13,6 +13,7 @@ import ProductHeader from '@/components/products/ProductHeader';
 import RelatedProducts from '@/components/products/RelatedProducts';
 import ProductSchema from '@/components/seo/ProductSchema';
 import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
+import ImageObjectSchema from '@/components/seo/ImageObjectSchema';
 import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
@@ -106,6 +107,7 @@ const ProductDetail = () => {
       </Helmet>
       <ProductSchema product={product} />
       <BreadcrumbSchema items={breadcrumbItems} />
+      <ImageObjectSchema product={product} />
       <section id="product-details" className="bg-white py-12">
         <div className="container-custom">
           <ProductHeader />
@@ -125,7 +127,38 @@ const ProductDetail = () => {
                   {product.shortDescription}
                 </p>
               </div>
-              <ProductInfo product={product} language={language} />
+
+              <h2 className="text-2xl font-semibold text-stakerpol-navy border-b border-gray-200 pb-2">
+                Specyfikacja techniczna
+              </h2>
+
+              <div className="space-y-4">
+                <h3 className="text-xl font-medium text-stakerpol-navy">
+                  Parametry podnoszenia
+                </h3>
+                <ProductInfo product={product} language={language} />
+                
+                <h3 className="text-xl font-medium text-stakerpol-navy mt-6">
+                  Zastosowania
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                  <span>• Magazyn</span>
+                  <span>• Produkcja</span>
+                  <span>• Przewożenie palet</span>
+                  <span>• Rozładunek TIR</span>
+                  <span>• Chłodnie</span>
+                  <span>• Obsługa regałów</span>
+                </div>
+
+                <h3 className="text-xl font-medium text-stakerpol-navy mt-6">
+                  Stan i eksploatacja
+                </h3>
+                <div className="text-sm text-gray-600">
+                  <p>Stan: {product.specs?.condition || 'Używany'}</p>
+                  {product.specs?.workingHours && <p>Motogodziny: {product.specs.workingHours} mth</p>}
+                  {product.specs?.productionYear && <p>Rok produkcji: {product.specs.productionYear}</p>}
+                </div>
+              </div>
             </div>
           </div>
         </div>

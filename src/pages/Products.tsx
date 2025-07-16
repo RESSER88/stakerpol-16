@@ -3,6 +3,7 @@ import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/ui/ProductCard';
 import CallToAction from '@/components/ui/CallToAction';
 import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
+import ProductListSchema from '@/components/seo/ProductListSchema';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
@@ -58,6 +59,7 @@ const Products = () => {
 
   return (
     <Layout>
+      <ProductListSchema products={products} />
       <section className="bg-gradient-to-b from-stakerpol-lightgray to-white py-12">
         <div className="container-custom">
           <div className="flex justify-between items-center mb-6">
@@ -71,9 +73,13 @@ const Products = () => {
             </Link>
           </div>
           
-          <p className="text-xl text-center text-muted-foreground max-w-3xl mx-auto mb-12 animate-fade-in">
+          <p className="text-xl text-center text-muted-foreground max-w-3xl mx-auto mb-8 animate-fade-in">
             {getPageDescription()}
           </p>
+
+          <h2 className="text-2xl font-semibold text-stakerpol-navy mb-6 text-center">
+            Dostępne modele wózków widłowych ({products.length} {products.length === 1 ? 'sztuka' : 'sztuk'})
+          </h2>
           
           {renderContent()}
         </div>

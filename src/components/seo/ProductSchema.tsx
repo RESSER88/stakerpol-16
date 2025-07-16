@@ -39,6 +39,17 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
     return modelMatch ? modelMatch[0] : model;
   };
 
+  const getApplicationAreas = () => {
+    return [
+      "Magazyn",
+      "Produkcja", 
+      "Przewożenie palet",
+      "Rozładunek TIR",
+      "Chłodnie",
+      "Obsługa regałów"
+    ];
+  };
+
   const getAdditionalProperties = () => {
     const properties = [];
     
@@ -119,6 +130,10 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
       "name": getBrand()
     },
     "category": "Wózki widłowe",
+    "fuelType": "Electric",
+    "applicationArea": getApplicationAreas(),
+    "usedCondition": product.specs?.condition || "Używany",
+    "operatingWeight": product.specs?.mastLiftingCapacity ? `${product.specs.mastLiftingCapacity} kg` : undefined,
     "additionalProperty": getAdditionalProperties(),
     "offers": {
       "@type": "Offer",
