@@ -97,14 +97,31 @@ const LocalBusinessSchema = ({ includeOfferCatalog = true }: LocalBusinessSchema
       "Oleje hydrauliczne",
       "Koła poliuretanowe",
       "Maszt wózka widłowego",
-      "Bezpieczeństwo pracy z wózkiem"
+      "Bezpieczeństwo pracy z wózkiem",
+      "Funkcja creep to creep",
+      "Prostowniki baterii",
+      "Ładowanie baterii wózków",
+      "Parametry prostownika",
+      "Manewrowanie na wyprostowanym dyszlu",
+      "Systemy bezpieczeństwa wózków",
+      "Kody błędów wózków",
+      "Konserwacja pojazdów magazynowych",
+      "Wózki SWE120L, SWE140L, SWE200D",
+      "Europałety standardowe",
+      "Widła 1150mm"
     ],
     "serviceType": [
       "Sprzedaż wózków widłowych",
       "Serwis i naprawa",
       "Części zamienne",
       "Wynajem krótkoterminowy",
-      "Doradztwo techniczne"
+      "Doradztwo techniczne",
+      "Przeglądy UDT",
+      "Regeneracja baterii",
+      "Transport i dostawa",
+      "Szkolenia obsługi",
+      "Diagnoza techniczna",
+      "Leasing wózków"
     ]
   };
 

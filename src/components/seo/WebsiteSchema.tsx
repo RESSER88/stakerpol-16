@@ -27,7 +27,8 @@ const WebsiteSchema = ({ includeStructuredData = true }: WebsiteSchemaProps) => 
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://stakerpol.pl/products?search={search_term_string}"
+          "urlTemplate": "https://stakerpol.pl/products?search={search_term_string}",
+          "httpMethod": "GET"
         },
         "query-input": "required name=search_term_string"
       }

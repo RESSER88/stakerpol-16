@@ -78,7 +78,7 @@ const FAQSchema = ({ includeStructuredData = true }: FAQSchemaProps) => {
     },
     {
       question: "Na czym polega funkcja 'creep to creep'?",
-      answer: "Funkcja umożliwia precyzyjne manewrowanie z niską prędkością."
+      answer: "Funkcja umożliwia manewrowanie na wyprostowanym dyszlu."
     },
     {
       question: "Co oznacza kod błędu 2.001?",
@@ -110,7 +110,7 @@ const FAQSchema = ({ includeStructuredData = true }: FAQSchemaProps) => {
     },
     {
       question: "Jak długo ładuje się bateria wózka?",
-      answer: "Pełne ładowanie trwa 6–8 godzin w zależności od modelu."
+      answer: "Pełne ładowanie trwa 6–8 godzin w zależności od modelu oraz parametrów prostownika."
     },
     {
       question: "Na czym polega kompleksowe sprawdzenie baterii?",
