@@ -41,12 +41,14 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
 
   const getApplicationAreas = () => {
     return [
-      "Magazyn",
-      "Produkcja", 
-      "Przewożenie palet",
-      "Rozładunek TIR",
-      "Chłodnie",
-      "Obsługa regałów"
+      "Magazyny i centra dystrybucyjne",
+      "Zakłady produkcyjne",
+      "Handel detaliczny i supermarkety",
+      "Gospodarstwa rolne",
+      "Magazyny wysokiego składowania",
+      "Logistyka magazynowa",
+      "Zakłady przemysłowe",
+      "Hurtownie i hipermarkety"
     ];
   };
 
