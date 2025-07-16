@@ -19,10 +19,36 @@ const LocalBusinessSchema = ({ includeOfferCatalog = true }: LocalBusinessSchema
       "addressCountry": "PL",
       "addressRegion": "Wielkopolska"
     },
-    "areaServed": {
-      "@type": "Country",
-      "name": "Polska"
-    },
+    "areaServed": [
+      {
+        "@type": "Country",
+        "name": "Polska"
+      },
+      {
+        "@type": "State",
+        "name": "Wielkopolska"
+      },
+      {
+        "@type": "City", 
+        "name": "Poznań"
+      },
+      {
+        "@type": "City",
+        "name": "Warszawa"
+      },
+      {
+        "@type": "City",
+        "name": "Kraków"
+      },
+      {
+        "@type": "City",
+        "name": "Wrocław"
+      },
+      {
+        "@type": "City",
+        "name": "Gdańsk"
+      }
+    ],
     "logo": {
       "@type": "ImageObject",
       "url": "https://stakerpol.pl/logo.png"
@@ -54,11 +80,24 @@ const LocalBusinessSchema = ({ includeOfferCatalog = true }: LocalBusinessSchema
     } : undefined,
     "knowsAbout": [
       "Wózki widłowe Toyota",
-      "Wózki elektryczne BT",
-      "Serwis wózków widłowych", 
+      "Wózki elektryczne BT", 
+      "Serwis wózków widłowych",
       "Części zamienne Toyota",
       "Wynajem wózków widłowych",
-      "Sprzedaż używanych wózków"
+      "Sprzedaż używanych wózków",
+      "Paleciaki magazynowe",
+      "Uprawnienia UDT",
+      "Przeglądy techniczne wózków",
+      "Baterie do wózków elektrycznych",
+      "Regeneracja baterii",
+      "Wózki paletowe",
+      "Leasing wózków widłowych",
+      "Transport wózków",
+      "Diagnostyka wózków",
+      "Oleje hydrauliczne",
+      "Koła poliuretanowe",
+      "Maszt wózka widłowego",
+      "Bezpieczeństwo pracy z wózkiem"
     ],
     "serviceType": [
       "Sprzedaż wózków widłowych",

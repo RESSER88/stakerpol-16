@@ -8,6 +8,8 @@ import ProductCard from '@/components/ui/ProductCard';
 import WhyChooseUs from '@/components/ui/WhyChooseUs';
 import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
 import LocalBusinessSchema from '@/components/seo/LocalBusinessSchema';
+import WebsiteSchema from '@/components/seo/WebsiteSchema';
+import FAQSchema from '@/components/seo/FAQSchema';
 import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
@@ -85,6 +87,8 @@ const Index = () => {
         <meta name="keywords" content="wózki widłowe, toyota, bt, elektryczne, spalinowe, paleciaki, magazynowe, używane, serwis, stakerpol" />
       </Helmet>
       <LocalBusinessSchema />
+      <WebsiteSchema />
+      <FAQSchema />
       {/* Hero Section with Background Image */}
       <section 
         className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-toyota-black text-white min-h-[600px] flex items-center"
