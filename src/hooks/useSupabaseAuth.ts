@@ -9,10 +9,90 @@ export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => {
+    // Initialize from localStorage cache
+    const cached = localStorage.getItem('isAdmin');
+    return cached ? JSON.parse(cached) : false;
+  });
   const [adminLoading, setAdminLoading] = useState(false);
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
+
+  // Cache admin status in localStorage
+  const setIsAdminWithCache = (value: boolean) => {
+    setIsAdmin(value);
+    localStorage.setItem('isAdmin', JSON.stringify(value));
+  };
+
+  // Check admin role with timeout and cache
+  const checkAdminRole = async (userId: string, forceCheck = false): Promise<boolean> => {
+    // Use cache if not forcing check and cache exists
+    const cacheKey = `adminRole_${userId}`;
+    const cached = localStorage.getItem(cacheKey);
+    const cacheExpiry = localStorage.getItem(`${cacheKey}_expiry`);
+    
+    if (!forceCheck && cached && cacheExpiry && Date.now() < parseInt(cacheExpiry)) {
+      const cachedValue = JSON.parse(cached);
+      setIsAdminWithCache(cachedValue);
+      return cachedValue;
+    }
+
+    setAdminLoading(true);
+    
+    try {
+      console.log('👤 Checking admin role for user:', userId);
+      
+      // Add timeout protection (5 seconds)
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Admin role check timeout')), 5000)
+      );
+      
+      const queryPromise = supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+      
+      if (!error && data) {
+        const userIsAdmin = data.role === 'admin';
+        console.log('🛡️ User role check result:', data.role, '| isAdmin:', userIsAdmin);
+        
+        // Cache result for 5 minutes
+        localStorage.setItem(cacheKey, JSON.stringify(userIsAdmin));
+        localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 5 * 60 * 1000).toString());
+        
+        setIsAdminWithCache(userIsAdmin);
+        return userIsAdmin;
+      } else {
+        console.log('⚠️ User role check failed:', error?.message || 'No role found');
+        // On error, try to use cache as fallback
+        if (cached) {
+          const fallbackValue = JSON.parse(cached);
+          setIsAdminWithCache(fallbackValue);
+          return fallbackValue;
+        }
+        setIsAdminWithCache(false);
+        return false;
+      }
+    } catch (error: any) {
+      console.error('❌ Error checking admin role:', error);
+      
+      // On timeout or error, use cache as fallback
+      if (cached) {
+        const fallbackValue = JSON.parse(cached);
+        console.log('🔄 Using cached admin status as fallback:', fallbackValue);
+        setIsAdminWithCache(fallbackValue);
+        return fallbackValue;
+      }
+      
+      setIsAdminWithCache(false);
+      return false;
+    } finally {
+      setAdminLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -27,47 +107,36 @@ export const useSupabaseAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check admin role with proper error handling
-          setAdminLoading(true);
-          try {
-            console.log('👤 Checking admin role for user:', session.user.id);
-            const { data, error } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .single();
-            
-            if (!mounted) return;
-            
-            if (!error && data) {
-              const userIsAdmin = data.role === 'admin';
-              console.log('🛡️ User role check result:', data.role, '| isAdmin:', userIsAdmin);
-              setIsAdmin(userIsAdmin);
-              
-              // Auto-redirect admin users to admin panel after successful sign in
-              if (userIsAdmin && event === 'SIGNED_IN') {
-                console.log('🚀 Admin user signed in, redirecting to /admin');
-                // Use setTimeout to avoid redirect conflicts
-                setTimeout(() => {
-                  if (window.location.pathname !== '/admin') {
-                    window.location.href = '/admin';
+          // Only check admin role on sign in and token refresh, not on every auth change
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            // Use debounced admin role check
+            setTimeout(() => {
+              if (mounted) {
+                checkAdminRole(session.user.id).then((userIsAdmin) => {
+                  // Auto-redirect admin users to admin panel after successful sign in
+                  if (userIsAdmin && event === 'SIGNED_IN') {
+                    console.log('🚀 Admin user signed in, redirecting to /admin');
+                    setTimeout(() => {
+                      if (window.location.pathname !== '/admin') {
+                        window.location.href = '/admin';
+                      }
+                    }, 1000);
                   }
-                }, 1000);
+                });
               }
-            } else {
-              console.log('⚠️ User role check failed:', error?.message || 'No role found');
-              setIsAdmin(false);
-            }
-          } catch (error) {
-            console.error('❌ Error checking admin role:', error);
-            if (mounted) setIsAdmin(false);
-          } finally {
-            if (mounted) setAdminLoading(false);
+            }, 100); // Small delay to prevent race conditions
           }
         } else {
-          // User logged out
+          // User logged out - clear cache
           console.log('👋 User logged out');
-          setIsAdmin(false);
+          localStorage.removeItem('isAdmin');
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('adminRole_')) {
+              localStorage.removeItem(key);
+              localStorage.removeItem(`${key}_expiry`);
+            }
+          });
+          setIsAdminWithCache(false);
           setAdminLoading(false);
         }
         

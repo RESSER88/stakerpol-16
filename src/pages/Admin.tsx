@@ -113,14 +113,29 @@ const Admin = () => {
     }
   };
 
-  if (authLoading || adminLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
-          <p className="text-gray-600">
-            {authLoading ? 'Sprawdzanie uprawnień...' : 'Weryfikacja roli administratora...'}
-          </p>
+          <p className="text-gray-600">Ładowanie aplikacji...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (adminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto p-6">
+          <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Sprawdzanie uprawnień</h3>
+          <p className="text-gray-600 mb-4">Weryfikujemy Twoje uprawnienia administratora...</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              Jeśli to trwa zbyt długo, spróbuj odświeżyć stronę
+            </p>
+          </div>
         </div>
       </div>
     );
