@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircle, AlertCircle, Upload } from 'lucide-react';
+import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircle, AlertCircle, Upload, LogOut } from 'lucide-react';
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMigrationMonitor } from '@/hooks/useMigrationMonitor';
 
 const Admin = () => {
-  const { user, loading: authLoading, isAdmin, adminLoading } = useSupabaseAuth();
+  const { user, loading: authLoading, isAdmin, adminLoading, signOut } = useSupabaseAuth();
   const { 
     products, 
     isLoading: productsLoading, 
@@ -146,19 +146,54 @@ const Admin = () => {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Brak uprawnień</h2>
+          <p className="text-gray-600 mb-6">
+            Nie masz uprawnień administratora do tego panelu.
+          </p>
+          <div className="space-y-3">
+            <Button onClick={() => window.location.href = '/'} className="w-full">
+              Powrót do strony głównej
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => signOut()} 
+              className="w-full flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Wyloguj się
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-stakerpol-navy mb-2">
-            Panel Administracyjny
-          </h1>
-          <p className="text-gray-600">
-            Zarządzanie produktami i systemem
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-stakerpol-navy mb-2">
+                Panel Administracyjny
+              </h1>
+              <p className="text-gray-600">
+                Zarządzanie produktami i systemem
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => signOut()} 
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Wyloguj
+            </Button>
+          </div>
           
           {/* Enhanced Migration Status Card */}
           <div className="mt-4 p-4 border rounded-lg bg-white">

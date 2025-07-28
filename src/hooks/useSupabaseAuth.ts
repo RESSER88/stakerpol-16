@@ -112,17 +112,7 @@ export const useSupabaseAuth = () => {
             // Use debounced admin role check
             setTimeout(() => {
               if (mounted) {
-                checkAdminRole(session.user.id).then((userIsAdmin) => {
-                  // Auto-redirect admin users to admin panel after successful sign in
-                  if (userIsAdmin && event === 'SIGNED_IN') {
-                    console.log('🚀 Admin user signed in, redirecting to /admin');
-                    setTimeout(() => {
-                      if (window.location.pathname !== '/admin') {
-                        window.location.href = '/admin';
-                      }
-                    }, 1000);
-                  }
-                });
+                checkAdminRole(session.user.id);
               }
             }, 100); // Small delay to prevent race conditions
           }

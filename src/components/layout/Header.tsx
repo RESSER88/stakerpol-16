@@ -1,16 +1,18 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { language } = useLanguage();
   const t = useTranslation(language);
+  const { user, isAdmin } = useSupabaseAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -42,6 +44,12 @@ const Header = () => {
             <Link to="/faq" className="font-medium hover:text-toyota-orange transition-colors">
               FAQ
             </Link>
+            {user && isAdmin && (
+              <Link to="/admin" className="font-medium hover:text-toyota-orange transition-colors flex items-center gap-1">
+                <Settings className="h-4 w-4" />
+                Admin
+              </Link>
+            )}
             <LanguageSwitcher />
             <Button className="cta-button" asChild>
               <a href="tel:+48694133592">
@@ -103,6 +111,16 @@ const Header = () => {
               >
                 FAQ
               </Link>
+              {user && isAdmin && (
+                <Link 
+                  to="/admin" 
+                  className="font-medium py-2 hover:text-toyota-orange transition-colors flex items-center gap-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Settings className="h-4 w-4" />
+                  Panel administratora
+                </Link>
+              )}
               <Button className="cta-button w-full" asChild>
                 <a href="tel:+48694133592">
                   <Phone className="mr-2 h-4 w-4" />
