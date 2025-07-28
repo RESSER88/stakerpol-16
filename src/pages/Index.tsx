@@ -6,6 +6,7 @@ import CallToAction from '@/components/ui/CallToAction';
 import ProductCard from '@/components/ui/ProductCard';
 import WhyChooseUs from '@/components/ui/WhyChooseUs';
 import ProductsEmptyState from '@/components/ui/ProductsEmptyState';
+import HomepageFAQ from '@/components/ui/HomepageFAQ';
 import LocalBusinessSchema from '@/components/seo/LocalBusinessSchema';
 import WebsiteSchema from '@/components/seo/WebsiteSchema';
 import FAQSchema from '@/components/seo/FAQSchema';
@@ -199,6 +200,8 @@ const Index = () => {
           {renderFeaturedProducts()}
         </div>
       </section>
+
+      <HomepageFAQ />
 
       <CallToAction />
     </Layout>

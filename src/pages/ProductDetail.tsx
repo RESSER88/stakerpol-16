@@ -10,6 +10,7 @@ import ProductImage from '@/components/products/ProductImage';
 import ProductInfo from '@/components/products/ProductInfo';
 import ProductHeader from '@/components/products/ProductHeader';
 import RelatedProducts from '@/components/products/RelatedProducts';
+import ProductFAQ from '@/components/ui/ProductFAQ';
 import ProductSchema from '@/components/seo/ProductSchema';
 import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
 import ImageObjectSchema from '@/components/seo/ImageObjectSchema';
@@ -190,6 +191,8 @@ const ProductDetail = () => {
                   {product.specs?.workingHours && <p>Motogodziny: {product.specs.workingHours} mth</p>}
                   {product.specs?.productionYear && <p>Rok produkcji: {product.specs.productionYear}</p>}
                 </div>
+                
+                <ProductFAQ product={product} />
               </div>
             </div>
           </div>
