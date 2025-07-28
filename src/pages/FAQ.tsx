@@ -172,14 +172,12 @@ const FAQ = () => {
       <AIOptimizedMetaTags
         title="FAQ - Najczęściej zadawane pytania o wózki widłowe | Stakerpol"
         description="Odpowiedzi na najważniejsze pytania o wózki widłowe Toyota BT, paleciaki elektryczne, serwis, UDT, baterie i eksploatację. Kompletny przewodnik dla użytkowników."
-        keywords="FAQ wózki widłowe, pytania paleciak elektryczny, Toyota BT instrukcja, UDT wózek widłowy, bateria paleciak, serwis wózków widłowych"
-        aiQueries={[
-          "najczęściej zadawane pytania o wózki widłowe",
-          "jak obsługiwać paleciak elektryczny",
-          "czy potrzebne są uprawnienia UDT do wózka",
-          "jak ładować baterię w paleciaku",
-          "problemy z wózkiem widłowym rozwiązania"
-        ]}
+        keywords={["FAQ wózki widłowe", "pytania paleciak elektryczny", "Toyota BT instrukcja", "UDT wózek widłowy", "bateria paleciak", "serwis wózków widłowych"]}
+        aiSearchOptimization={{
+          semanticKeywords: ["FAQ wózki widłowe", "pytania paleciaki", "Toyota BT pomoc", "UDT wózek", "bateria ładowanie"],
+          voiceSearchQueries: ["najczęściej zadawane pytania o wózki widłowe", "jak obsługiwać paleciak elektryczny", "czy potrzebne są uprawnienia UDT do wózka", "jak ładować baterię w paleciaku"],
+          entityContext: ["Toyota BT FAQ", "wózki widłowe pytania", "paleciaki elektryczne pomoc", "UDT uprawnienia", "baterie obsługa"]
+        }}
       />
       <FAQSchema includeStructuredData={true} />
       

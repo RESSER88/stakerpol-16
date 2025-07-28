@@ -39,6 +39,9 @@ const Header = () => {
             <Link to="/contact" className="font-medium hover:text-toyota-orange transition-colors">
               {t('contact')}
             </Link>
+            <Link to="/faq" className="font-medium hover:text-toyota-orange transition-colors">
+              FAQ
+            </Link>
             <LanguageSwitcher />
             <Button className="cta-button" asChild>
               <a href="tel:+48694133592">
@@ -92,6 +95,13 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t('contact')}
+              </Link>
+              <Link 
+                to="/faq" 
+                className="font-medium py-2 hover:text-toyota-orange transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                FAQ
               </Link>
               <Button className="cta-button w-full" asChild>
                 <a href="tel:+48694133592">
