@@ -11,57 +11,73 @@ const GeoTargetingSchema = ({ includeStructuredData = true }: GeoTargetingSchema
     "@context": "https://schema.org/",
     "@type": "LocalBusiness",
     "name": "Stakerpol - Wózki widłowe Toyota BT",
-    "description": "Sprzedaż i serwis używanych wózków widłowych Toyota BT w Małopolsce",
+    "description": "Sprzedaż i serwis używanych wózków widłowych Toyota BT w Polsce",
     "url": "https://stakerpol.pl",
     "telephone": "+48694133592",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "ul. Energetyków 9c",
-      "addressLocality": "Niepołomice",
-      "postalCode": "32-005",
+      "streetAddress": "ul. Szewska 6",
+      "addressLocality": "Skała",
+      "postalCode": "32-043",
       "addressRegion": "Małopolskie",
       "addressCountry": "PL"
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": "50.0355",
-      "longitude": "20.2145"
+      "latitude": "50.2297",
+      "longitude": "19.8347"
     },
     "areaServed": [
+      {
+        "@type": "Country",
+        "name": "Poland",
+        "sameAs": "https://pl.wikipedia.org/wiki/Polska"
+      },
+      {
+        "@type": "City",
+        "name": "Warszawa",
+        "sameAs": "https://pl.wikipedia.org/wiki/Warszawa"
+      },
       {
         "@type": "City",
         "name": "Kraków",
         "sameAs": "https://pl.wikipedia.org/wiki/Kraków"
       },
       {
+        "@type": "City",
+        "name": "Gdańsk",
+        "sameAs": "https://pl.wikipedia.org/wiki/Gdańsk"
+      },
+      {
+        "@type": "City",
+        "name": "Wrocław",
+        "sameAs": "https://pl.wikipedia.org/wiki/Wrocław"
+      },
+      {
+        "@type": "City",
+        "name": "Poznań",
+        "sameAs": "https://pl.wikipedia.org/wiki/Poznań"
+      },
+      {
+        "@type": "City",
+        "name": "Łódź",
+        "sameAs": "https://pl.wikipedia.org/wiki/Łódź"
+      },
+      {
+        "@type": "City",
+        "name": "Katowice",
+        "sameAs": "https://pl.wikipedia.org/wiki/Katowice"
+      },
+      {
         "@type": "City", 
-        "name": "Niepołomice",
-        "sameAs": "https://pl.wikipedia.org/wiki/Niepołomice"
-      },
-      {
-        "@type": "City",
-        "name": "Wieliczka",
-        "sameAs": "https://pl.wikipedia.org/wiki/Wieliczka"
-      },
-      {
-        "@type": "City",
-        "name": "Tarnów",
-        "sameAs": "https://pl.wikipedia.org/wiki/Tarnów"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "Małopolskie",
-        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_małopolskie"
+        "name": "Skała",
+        "sameAs": "https://pl.wikipedia.org/wiki/Skała_(powiat_krakowski)"
       }
     ],
     "serviceArea": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": "50.0355",
-        "longitude": "20.2145"
-      },
-      "geoRadius": "100000"
+      "@type": "Country",
+      "name": "Poland",
+      "sameAs": "https://pl.wikipedia.org/wiki/Polska"
     },
     "openingHours": [
       "Mo-Fr 08:00-17:00",
@@ -70,34 +86,47 @@ const GeoTargetingSchema = ({ includeStructuredData = true }: GeoTargetingSchema
     "priceRange": "$$",
     "paymentAccepted": ["Cash", "Credit Card", "Bank Transfer"],
     "currenciesAccepted": "PLN",
-    "hasMap": "https://www.google.com/maps/place/ul.+Energetyków+9c,+32-005+Niepołomice",
+    "hasMap": "https://www.google.com/maps/place/ul.+Szewska+6,+32-043+Skała",
     "geoTargeting": {
       "primaryMarkets": [
-        "Kraków",
-        "Niepołomice",
-        "Wieliczka"
+        "Warszawa",
+        "Kraków", 
+        "Gdańsk",
+        "Wrocław",
+        "Poznań"
       ],
       "secondaryMarkets": [
-        "Tarnów",
-        "Nowy Sącz",
-        "Bochnia"
+        "Łódź",
+        "Katowice",
+        "Lublin",
+        "Białystok",
+        "Gdynia",
+        "Szczecin",
+        "Bydgoszcz",
+        "Skała"
       ],
       "keywords": {
+        "Warszawa": [
+          "wózki widłowe Warszawa",
+          "wózki paletowe elektryczne Warszawa",
+          "Toyota wózki Warszawa",
+          "serwis wózków widłowych Warszawa"
+        ],
         "Kraków": [
           "wózki widłowe Kraków",
-          "używane wózki widłowe Kraków",
+          "wózki paletowe elektryczne Kraków",
           "Toyota wózki Kraków",
           "serwis wózków widłowych Kraków"
         ],
-        "Niepołomice": [
-          "wózki widłowe Niepołomice",
-          "Toyota BT Niepołomice",
-          "sprzedaż wózków Niepołomice"
+        "Gdańsk": [
+          "wózki widłowe Gdańsk",
+          "wózki paletowe elektryczne Gdańsk",
+          "Toyota BT Gdańsk"
         ],
-        "Wieliczka": [
-          "wózki widłowe Wieliczka",
-          "używane wózki Wieliczka",
-          "serwis wózków Wieliczka"
+        "Skała": [
+          "wózki widłowe Skała",
+          "Toyota BT Skała",
+          "sprzedaż wózków Skała"
         ]
       }
     }

@@ -16,37 +16,97 @@ const LocalBusinessSchema = ({ includeOfferCatalog = true }: LocalBusinessSchema
     "foundingDate": "2010",
     "address": {
       "@type": "PostalAddress",
-      "addressCountry": "PL",
-      "addressRegion": "Wielkopolska"
+      "streetAddress": "ul. Szewska 6",
+      "addressLocality": "Skała",
+      "postalCode": "32-043",
+      "addressRegion": "Małopolskie",
+      "addressCountry": "PL"
     },
     "areaServed": [
       {
         "@type": "Country",
-        "name": "Polska"
+        "name": "Poland",
+        "sameAs": "https://pl.wikipedia.org/wiki/Polska"
       },
       {
-        "@type": "State",
-        "name": "Wielkopolska"
+        "@type": "AdministrativeArea",
+        "name": "Małopolskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_małopolskie"
       },
       {
-        "@type": "City", 
-        "name": "Poznań"
+        "@type": "AdministrativeArea",
+        "name": "Wielkopolskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_wielkopolskie"
       },
       {
-        "@type": "City",
-        "name": "Warszawa"
+        "@type": "AdministrativeArea",
+        "name": "Mazowieckie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_mazowieckie"
       },
       {
-        "@type": "City",
-        "name": "Kraków"
+        "@type": "AdministrativeArea",
+        "name": "Śląskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_śląskie"
       },
       {
-        "@type": "City",
-        "name": "Wrocław"
+        "@type": "AdministrativeArea",
+        "name": "Dolnośląskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_dolnośląskie"
       },
       {
-        "@type": "City",
-        "name": "Gdańsk"
+        "@type": "AdministrativeArea",
+        "name": "Pomorskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_pomorskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Zachodniopomorskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_zachodniopomorskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Łódzkie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_łódzkie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Lubelskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_lubelskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Podkarpackie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_podkarpackie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Świętokrzyskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_świętokrzyskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Podlaskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_podlaskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Warmińsko-mazurskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_warmińsko-mazurskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Kujawsko-pomorskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_kujawsko-pomorskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Lubuskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_lubuskie"
+      },
+      {
+        "@type": "AdministrativeArea",
+        "name": "Opolskie",
+        "sameAs": "https://pl.wikipedia.org/wiki/Województwo_opolskie"
       }
     ],
     "logo": {

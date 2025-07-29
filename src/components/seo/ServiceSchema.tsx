@@ -18,13 +18,9 @@ const ServiceSchema = ({ includeStructuredData = true }: ServiceSchemaProps) => 
         "name": "Stakerpol"
       },
       "areaServed": {
-        "@type": "GeoCircle",
-        "geoMidpoint": {
-          "@type": "GeoCoordinates",
-          "latitude": "50.0355",
-          "longitude": "20.2145"
-        },
-        "geoRadius": "100000"
+        "@type": "Country",
+        "name": "Poland",
+        "sameAs": "https://pl.wikipedia.org/wiki/Polska"
       },
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
