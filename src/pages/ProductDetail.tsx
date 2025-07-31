@@ -148,21 +148,21 @@ const ProductDetail = () => {
           {/* Product Image */}
           <div className="space-y-4">
             <ProductImage 
-              product={product} 
-              priority 
-              className="rounded-lg shadow-md"
+              image={product.image}
+              alt={product.model}
+              images={product.images}
             />
           </div>
 
           {/* Product Information */}
           <div className="space-y-6">
-            <ProductInfo product={product} />
+            <ProductInfo product={product} language={language} />
           </div>
         </div>
 
         {/* Specifications Table */}
         <div className="mb-12">
-          <ModernSpecificationsTable product={product} />
+          <ModernSpecificationsTable product={product} language={language} />
         </div>
 
         {/* Related Products */}
