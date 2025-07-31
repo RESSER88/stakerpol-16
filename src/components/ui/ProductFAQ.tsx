@@ -7,15 +7,39 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
-import { getFeaturedFAQ } from '@/data/faqData';
 
 interface ProductFAQProps {
   product: Product;
 }
 
 const ProductFAQ = ({ product }: ProductFAQProps) => {
-  // Use shared FAQ data for consistency
-  const productFAQ = getFeaturedFAQ();
+  // FAQ zgodne z tymi z strony głównej (najczęściej zadawane pytania)
+  const productFAQ = [
+    {
+      question: "Czy do obsługi wózka potrzebne są uprawnienia UDT?",
+      answer: "Tak, wymagane są uprawnienia UDT do obsługi wózków widłowych. Operator musi posiadać ważne świadectwo kwalifikacji wydane przez Urząd Dozoru Technicznego."
+    },
+    {
+      question: "Czy używane wózki są objęte gwarancją?",
+      answer: "Tak, wszystkie nasze używane wózki są objęte 3-miesięczną gwarancją. Gwarancja obejmuje sprawność mechaniczną i elektryczną urządzenia."
+    },
+    {
+      question: "Jak długo ładuje się bateria wózka?",
+      answer: "Pełne ładowanie baterii trwa 6-8 godzin w zależności od modelu wózka oraz parametrów prostownika. Nowoczesne prostowniki mają automatyczne wyłączanie."
+    },
+    {
+      question: "Czy oferowane wózki używane przechodzą przegląd techniczny?",
+      answer: "Tak, każdy wózek przed sprzedażą przechodzi dokładny przegląd techniczny. Sprawdzamy wszystkie systemy: hydrauliczny, elektryczny, hamulcowy oraz stan ogólny."
+    },
+    {
+      question: "Czy można przetestować wózek przed zakupem?",
+      answer: "Tak, zachęcamy do osobistego obejrzenia i przetestowania wózka przed zakupem. Umówimy wizytę w naszym magazynie, gdzie można sprawdzić wszystkie funkcje urządzenia."
+    },
+    {
+      question: "Jakie są dostępne formy dostawy wózka?",
+      answer: "Oferujemy dwie formy dostawy: odbiór osobisty z naszego magazynu oraz wysyłkę kurierską na podest. Koszt dostawy zależy od odległości i wagi urządzenia."
+    }
+  ];
 
   return (
     <div className="bg-gray-50/50 rounded-lg p-6 mt-8">

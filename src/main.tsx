@@ -5,7 +5,10 @@ import App from './App.tsx';
 import './index.css';
 import { trackWebVitals } from './utils/performance';
 
-// Web Vitals will be initialized in App.tsx to avoid React initialization conflicts
+// Initialize Web Vitals tracking dla 2024
+if (typeof window !== 'undefined') {
+  trackWebVitals();
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
