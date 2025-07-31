@@ -1,4 +1,3 @@
-
 import { Product } from '@/types';
 
 interface ProductSchemaProps {
@@ -10,7 +9,7 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
     if (typeof window !== 'undefined') {
       return window.location.href;
     }
-    return `https://stakerpol.pl/products/${product.slug || product.id}`;
+    return `https://stakerpol.pl/products/${product.id}`;
   };
 
   const getMainImage = () => {
@@ -115,7 +114,7 @@ const ProductSchema = ({ product }: ProductSchemaProps) => {
     return properties;
   };
 
-  const schema = {
+const schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": product.model,

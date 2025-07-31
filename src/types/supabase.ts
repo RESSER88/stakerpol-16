@@ -11,7 +11,6 @@ export type SupabaseProductImage = Database['public']['Tables']['product_images'
 export const mapSupabaseProductToProduct = (supabaseProduct: SupabaseProduct, images: SupabaseProductImage[] = []) => {
   return {
     id: supabaseProduct.id,
-    slug: supabaseProduct.slug,
     model: supabaseProduct.name,
     image: supabaseProduct.image_url || (images.length > 0 ? images[0].image_url : ''),
     images: images.map(img => img.image_url).filter(Boolean),
@@ -46,7 +45,6 @@ export const mapSupabaseProductToProduct = (supabaseProduct: SupabaseProduct, im
 export const mapProductToSupabaseInsert = (product: any): SupabaseProductInsert => {
   return {
     name: product.model,
-    slug: product.slug || generateSlugFromProduct(product),
     short_description: product.shortDescription,
     serial_number: product.specs.serialNumber || `AUTO-${Date.now()}`,
     production_year: product.specs.productionYear ? parseInt(product.specs.productionYear) : null,
@@ -75,21 +73,4 @@ export const mapProductToSupabaseUpdate = (product: any): SupabaseProductUpdate 
     ...mapProductToSupabaseInsert(product),
     updated_at: new Date().toISOString()
   };
-};
-
-// Helper function to generate slug from product data
-const generateSlugFromProduct = (product: any): string => {
-  const model = product.model || '';
-  const serialNumber = product.specs?.serialNumber || '';
-  
-  let slug = model.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .trim();
-    
-  if (serialNumber) {
-    slug += `-${serialNumber}`;
-  }
-  
-  return slug;
 };

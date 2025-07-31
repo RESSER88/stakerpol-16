@@ -18,15 +18,12 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { language } = useLanguage();
   const t = useTranslation(language);
 
-  // Use slug if available, fallback to ID for backward compatibility
-  const productUrl = product.slug ? `/products/${product.slug}` : `/products/${product.id}`;
-  
   // Use the first image from images array, fallback to image field
   const displayImage = product.images?.[0] || product.image;
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in border-none rounded-lg shadow h-full flex flex-col product-card-enhanced">
-      <Link to={productUrl} className="block">
+      <Link to={`/products/${product.id}`} className="block">
         <div className="aspect-[3/4] overflow-hidden bg-stakerpol-lightgray image-hover-zoom relative">
           <OptimizedImage
             src={displayImage}
@@ -41,7 +38,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
         </div>
       </Link>
       <CardContent className="p-4 md:p-6 lg:p-8 flex-1 flex flex-col card-content">
-        <Link to={productUrl} className="block hover:text-stakerpol-orange transition-colors">
+        <Link to={`/products/${product.id}`} className="block hover:text-stakerpol-orange transition-colors">
           <h3 className="text-lg md:text-xl lg:text-2xl font-bold mb-2 md:mb-3 lg:mb-4 text-stakerpol-navy">{product.model}</h3>
         </Link>
         <p className="text-muted-foreground mb-4 md:mb-5 lg:mb-6 line-clamp-2 flex-1 text-sm md:text-base leading-relaxed">{product.shortDescription}</p>
@@ -60,7 +57,7 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
             variant="outline"
             asChild
           >
-            <Link to={productUrl}>
+            <Link to={`/products/${product.id}`}>
               {t('specifications')}
             </Link>
           </Button>

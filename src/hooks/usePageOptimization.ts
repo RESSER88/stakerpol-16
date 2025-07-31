@@ -1,35 +1,19 @@
-
 import { useEffect } from 'react';
 
 interface PageOptimizationOptions {
   enableImageLazyLoading?: boolean;
   enablePrefetching?: boolean;
   enableCriticalResourceHints?: boolean;
-  preloadImages?: string[]; // Added missing property
-  prefetchRoutes?: string[]; // Added missing property
 }
 
 export const usePageOptimization = (options: PageOptimizationOptions = {}) => {
   const {
     enableImageLazyLoading = true,
     enablePrefetching = true,
-    enableCriticalResourceHints = true,
-    preloadImages = [],
-    prefetchRoutes = []
+    enableCriticalResourceHints = true
   } = options;
 
   useEffect(() => {
-    // Preload critical images
-    if (preloadImages.length > 0) {
-      preloadImages.forEach(src => {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = src;
-        document.head.appendChild(link);
-      });
-    }
-
     // Enable native lazy loading for images
     if (enableImageLazyLoading && 'loading' in HTMLImageElement.prototype) {
       const images = document.querySelectorAll('img:not([loading])');
@@ -42,10 +26,14 @@ export const usePageOptimization = (options: PageOptimizationOptions = {}) => {
 
     // Prefetch critical page resources
     if (enablePrefetching) {
-      const defaultPrefetchLinks = ['/products', '/contact', '/testimonials', '/faq'];
-      const linksToFetch = prefetchRoutes.length > 0 ? prefetchRoutes : defaultPrefetchLinks;
+      const prefetchLinks = [
+        '/products',
+        '/contact',
+        '/testimonials',
+        '/faq'
+      ];
 
-      linksToFetch.forEach(link => {
+      prefetchLinks.forEach(link => {
         const linkElement = document.createElement('link');
         linkElement.rel = 'prefetch';
         linkElement.href = link;
@@ -98,7 +86,7 @@ export const usePageOptimization = (options: PageOptimizationOptions = {}) => {
     return () => {
       observer.disconnect();
     };
-  }, [enableImageLazyLoading, enablePrefetching, enableCriticalResourceHints, preloadImages, prefetchRoutes]);
+  }, [enableImageLazyLoading, enablePrefetching, enableCriticalResourceHints]);
 
   // Performance monitoring
   useEffect(() => {

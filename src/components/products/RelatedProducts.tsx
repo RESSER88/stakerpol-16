@@ -5,12 +5,17 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
 
 interface RelatedProductsProps {
+  currentProductId: string;
   products: Product[];
 }
 
-const RelatedProducts = ({ products }: RelatedProductsProps) => {
+const RelatedProducts = ({ currentProductId, products }: RelatedProductsProps) => {
   const { language } = useLanguage();
   const t = useTranslation(language);
+  
+  const relatedProducts = products
+    .filter((p) => p.id !== currentProductId)
+    .slice(0, 3);
 
   const handleProductClick = () => {
     // Smooth scroll to product details section when a related product is clicked
@@ -33,7 +38,7 @@ const RelatedProducts = ({ products }: RelatedProductsProps) => {
       <div className="container-custom">
         <h2 className="text-2xl font-bold mb-6 animate-fade-in">{t('relatedProducts')}</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product, index) => (
+          {relatedProducts.map((product, index) => (
             <div 
               key={product.id} 
               className="animate-fade-in" 

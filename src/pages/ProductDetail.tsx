@@ -1,175 +1,207 @@
 
 import { useParams, Link } from 'react-router-dom';
-import { useProductBySlug } from '@/hooks/useProductBySlug';
-import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
+import { useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
-import ProductHeader from '@/components/products/ProductHeader';
-import ProductImage from '@/components/products/ProductImage';
-import ProductInfo from '@/components/products/ProductInfo';
-import ModernSpecificationsTable from '@/components/products/ModernSpecificationsTable';
-import RelatedProducts from '@/components/products/RelatedProducts';
-import ProductSchema from '@/components/seo/ProductSchema';
-import ProductReviewsSchema from '@/components/seo/ProductReviewsSchema';
-import FAQStructuredData from '@/components/seo/FAQStructuredData';
-import ImageObjectSchema from '@/components/seo/ImageObjectSchema';
-import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/utils/translations';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { usePageOptimization } from '@/hooks/usePageOptimization';
-import { Helmet } from 'react-helmet-async';
+import { usePublicSupabaseProducts } from '@/hooks/usePublicSupabaseProducts';
+import CallToAction from '@/components/ui/CallToAction';
+import ProductImage from '@/components/products/ProductImage';
+import ProductInfo from '@/components/products/ProductInfo';
+import ProductHeader from '@/components/products/ProductHeader';
+import RelatedProducts from '@/components/products/RelatedProducts';
+import ProductFAQ from '@/components/ui/ProductFAQ';
+import ProductSchema from '@/components/seo/ProductSchema';
+import BreadcrumbSchema from '@/components/seo/BreadcrumbSchema';
+import ImageObjectSchema from '@/components/seo/ImageObjectSchema';
+import AIOptimizedMetaTags from '@/components/seo/AIOptimizedMetaTags';
+import { Loader2 } from 'lucide-react';
 
 const ProductDetail = () => {
-  const { slug } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { language } = useLanguage();
   const t = useTranslation(language);
+  const { products, isLoading } = usePublicSupabaseProducts();
   
-  const { data: product, isLoading, error } = useProductBySlug(slug || '');
-  const { products: allProducts } = usePublicSupabaseProducts();
+  const product = products.find((p) => p.id === id);
   
-  // Performance optimization
-  usePageOptimization({
-    preloadImages: product?.images?.slice(0, 2),
-    prefetchRoutes: ['/products', '/contact']
-  });
-
-  const breadcrumbItems = [
-    { name: 'Strona główna', url: 'https://stakerpol.pl/' },
-    { name: 'Produkty', url: 'https://stakerpol.pl/products' },
-    { name: product?.model || 'Produkt', url: `https://stakerpol.pl/products/${slug}` }
-  ];
+  useEffect(() => {
+    // Scroll to top when component mounts or when ID changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
 
   if (isLoading) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-stakerpol-orange" />
-            <p className="text-muted-foreground">Ładowanie produktu...</p>
+        <div className="container-custom py-12">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-stakerpol-orange mx-auto mb-4" />
+              <p className="text-muted-foreground">Ładowanie produktu...</p>
+            </div>
           </div>
         </div>
       </Layout>
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Card className="max-w-md">
-            <CardContent className="pt-6 text-center space-y-4">
-              <h2 className="text-2xl font-bold text-red-600">Nie znaleziono produktu</h2>
-              <p className="text-muted-foreground">
-                Przepraszamy, ale produkt o podanym identyfikatorze nie istnieje.
-              </p>
-              <Button asChild>
-                <Link to="/products">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Powrót do produktów
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="container-custom py-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-stakerpol-navy">{t('productNotFound')}</h1>
+          <Link to="/products" className="text-stakerpol-orange hover:underline text-lg">
+            {t('backToProducts')}
+          </Link>
         </div>
       </Layout>
     );
   }
 
-  const relatedProducts = allProducts
-    .filter(p => p.id !== product.id)
-    .slice(0, 3);
+  const breadcrumbItems = [
+    { name: 'Strona główna', url: 'https://stakerpol.pl' },
+    { name: 'Produkty', url: 'https://stakerpol.pl/products' },
+    { name: product.model, url: `https://stakerpol.pl/products/${product.id}` }
+  ];
 
-  const pageTitle = `${product.model} - Wózek Widłowy Toyota BT | Stakerpol`;
-  const pageDescription = product.shortDescription || 
-    `Profesjonalny wózek widłowy ${product.model} Toyota BT. Udźwig ${product.specs.mastLiftingCapacity} kg, wysokość podnoszenia ${product.specs.liftHeight} mm. Stan: ${product.specs.condition}. Sprawdź specyfikację!`;
+  // Dynamic meta data
+  const getMetaTitle = () => {
+    const brand = product.model?.includes('Toyota') || product.model?.includes('BT') ? 'Toyota' : 'Toyota';
+    const serialNumber = product.specs?.serialNumber ? ` (${product.specs.serialNumber})` : '';
+    const type = product.specs?.driveType === 'Elektryczny' ? 'Wózek elektryczny' : 'Wózek widłowy';
+    return `${product.model}${serialNumber} - ${type} | Stakerpol`;
+  };
+
+  const getMetaDescription = () => {
+    const specs = [];
+    if (product.specs?.liftHeight) specs.push(`${product.specs.liftHeight}mm wysokość podnoszenia`);
+    if (product.specs?.mastLiftingCapacity) specs.push(`${product.specs.mastLiftingCapacity}kg udźwig`);
+    if (product.specs?.productionYear) specs.push(`rok ${product.specs.productionYear}`);
+    if (product.specs?.workingHours) specs.push(`${product.specs.workingHours}mth`);
+    
+    const specsText = specs.length > 0 ? ` - ${specs.join(', ')}` : '';
+    return `${product.shortDescription || product.model}${specsText}. Profesjonalna sprzedaż używanych wózków widłowych Toyota/BT. Sprawdź ofertę Stakerpol.`;
+  };
+
+  const getOgImage = () => {
+    if (product.images && product.images.length > 0) {
+      return product.images[0];
+    }
+    return product.image || '';
+  };
 
   return (
     <Layout>
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <meta name="keywords" content={`${product.model}, wózek widłowy, Toyota BT, ${product.specs.mastLiftingCapacity} kg, używany wózek widłowy, Stakerpol`} />
-        <link rel="canonical" href={`https://stakerpol.pl/products/${slug}`} />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:image" content={product.image} />
-        <meta property="og:url" content={`https://stakerpol.pl/products/${slug}`} />
-        <meta property="og:type" content="product" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={product.image} />
-        
-        {/* AI Search Optimization */}
-        <meta name="ai-search-keywords" content={`wózek widłowy ${product.model}, Toyota BT paletyzator, używany wózek elektryczny ${product.specs.mastLiftingCapacity} kg`} />
-        <meta name="voice-search-queries" content={`ile kosztuje ${product.model}, jaki udźwig ma ${product.model}, gdzie kupić ${product.model}`} />
-      </Helmet>
-      
-      {/* Structured Data */}
+      <AIOptimizedMetaTags 
+        title={getMetaTitle()}
+        description={getMetaDescription()}
+        keywords={[
+          product.model,
+          'Toyota wózek widłowy',
+          'BT paletyzator',
+          'wózek elektryczny używany',
+          'paletyzator magazynowy',
+          'Toyota forklift',
+          'wózek widłowy ' + (product.specs?.productionYear || ''),
+          'udźwig ' + (product.specs?.mastLiftingCapacity || '') + 'kg',
+          'wysokość ' + (product.specs?.liftHeight || '') + 'mm'
+        ]}
+        aiSearchOptimization={{
+          semanticKeywords: [
+            `${product.model} specyfikacja techniczna`,
+            `Toyota ${product.model} parametry`,
+            `wózek widłowy ${product.model} używany`,
+            `${product.model} cena sprzedaż`,
+            `paletyzator ${product.model} magazyn`,
+            `BT ${product.model} elektryczny`,
+            `${product.model} udźwig wysokość`,
+            `Toyota forklift ${product.model} części`
+          ],
+          voiceSearchQueries: [
+            `jaki jest udźwig ${product.model}`,
+            `ile kosztuje ${product.model}`,
+            `jakie są parametry ${product.model}`,
+            `gdzie kupić ${product.model}`,
+            `czy ${product.model} jest dobry do magazynu`,
+            `jaką ma wysokość podnoszenia ${product.model}`,
+            `ile motogodzin ma ${product.model}`,
+            `czy ${product.model} jest elektryczny`
+          ],
+          entityContext: [
+            `Toyota ${product.model} Material Handling`,
+            `BT ${product.model} wózek widłowy`,
+            `${product.model} paletyzator elektryczny`,
+            `${product.model} transport wewnętrzny`,
+            `${product.model} logistyka magazynowa`,
+            `Toyota forklift ${product.model} używany`,
+            `${product.model} handling equipment`
+          ]
+        }}
+      />
       <ProductSchema product={product} />
-      <ProductReviewsSchema product={product} />
-      <FAQStructuredData product={product} />
-      <ImageObjectSchema product={product} />
       <BreadcrumbSchema items={breadcrumbItems} />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumbs Navigation */}
-        <nav className="mb-6" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm">
-            <li><Link to="/" className="text-stakerpol-orange hover:underline">Strona główna</Link></li>
-            <li className="text-muted-foreground">/</li>
-            <li><Link to="/products" className="text-stakerpol-orange hover:underline">Produkty</Link></li>
-            <li className="text-muted-foreground">/</li>
-            <li className="text-muted-foreground">{product.model}</li>
-          </ol>
-        </nav>
-
-        {/* Back to Products Button */}
-        <div className="mb-6">
-          <Button variant="outline" asChild className="group">
-            <Link to="/products">
-              <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              {t('backToProducts') || 'Powrót do produktów'}
-            </Link>
-          </Button>
-        </div>
-
-        {/* Product Header */}
-        <ProductHeader product={product} />
-
-        {/* Product Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Product Image */}
-          <div className="space-y-4">
+      <ImageObjectSchema product={product} />
+      <section id="product-details" className="bg-white py-12">
+        <div className="container-custom">
+          <ProductHeader />
+          
+          <div className="grid lg:grid-cols-2 gap-12">
             <ProductImage 
-              image={product.image}
-              alt={product.model}
-              images={product.images}
+              image={product.image} 
+              alt={product.model} 
+              images={product.images} 
             />
-          </div>
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-stakerpol-navy leading-tight">
+                  {product.model}
+                </h1>
+                <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
+                  {product.shortDescription}
+                </p>
+              </div>
 
-          {/* Product Information */}
-          <div className="space-y-6">
-            <ProductInfo product={product} language={language} />
+              <h2 className="text-2xl font-semibold text-stakerpol-navy border-b border-gray-200 pb-2">
+                Specyfikacja techniczna
+              </h2>
+
+              <div className="space-y-4">
+                <h3 className="text-xl font-medium text-stakerpol-navy">
+                  Parametry podnoszenia
+                </h3>
+                <ProductInfo product={product} language={language} />
+                
+                <h3 className="text-xl font-medium text-stakerpol-navy mt-6">
+                  Zastosowania
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                  <span>• Magazyn</span>
+                  <span>• Produkcja</span>
+                  <span>• Przewożenie palet</span>
+                  <span>• Rozładunek TIR</span>
+                  <span>• Chłodnie</span>
+                  <span>• Obsługa regałów</span>
+                </div>
+
+                <h3 className="text-xl font-medium text-stakerpol-navy mt-6">
+                  Stan i eksploatacja
+                </h3>
+                <div className="text-sm text-gray-600">
+                  <p>Stan: {product.specs?.condition || 'Używany'}</p>
+                  {product.specs?.workingHours && <p>Motogodziny: {product.specs.workingHours} mth</p>}
+                  {product.specs?.productionYear && <p>Rok produkcji: {product.specs.productionYear}</p>}
+                </div>
+                
+                <ProductFAQ product={product} />
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Specifications Table */}
-        <div className="mb-12">
-          <ModernSpecificationsTable product={product} language={language} />
-        </div>
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <RelatedProducts products={relatedProducts} />
-        )}
-      </div>
+      </section>
+      
+      <RelatedProducts currentProductId={product.id} products={products} />
+      
+      <CallToAction />
     </Layout>
   );
 };
