@@ -59,15 +59,23 @@ export const trackWebVitals = () => {
       }
     }).observe({ entryTypes: ['largest-contentful-paint'] });
 
-    // Track First Input Delay (FID)
+    // Track Interaction to Next Paint (INP) - Core Web Vitals 2024
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const fidEntry = entry as any; // Type assertion for FID specific properties
-        if (fidEntry.processingStart) {
-          console.log('FID:', fidEntry.processingStart - entry.startTime);
+        const inpEntry = entry as any;
+        if (inpEntry.processingStart && inpEntry.processingEnd) {
+          const inp = inpEntry.processingEnd - entry.startTime;
+          console.log('INP:', inp);
+          // Send to analytics if available
+          if ((window as any).gtag) {
+            (window as any).gtag('event', 'web_vitals', {
+              metric_name: 'INP',
+              metric_value: Math.round(inp)
+            });
+          }
         }
       }
-    }).observe({ entryTypes: ['first-input'] });
+    }).observe({ entryTypes: ['event'] });
 
     // Track Cumulative Layout Shift (CLS)
     let clsValue = 0;
