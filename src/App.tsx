@@ -9,6 +9,8 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
+import ProductDetailSlug from "./pages/ProductDetailSlug";
+import ProductRedirect from "./components/products/ProductRedirect";
 import Testimonials from "./pages/Testimonials";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
@@ -52,7 +54,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/products/:slug" element={<ProductDetailSlug />} />
+              <Route path="/product/:id" element={<ProductRedirect />} />
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
