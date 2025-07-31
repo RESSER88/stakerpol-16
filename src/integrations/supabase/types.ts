@@ -72,6 +72,7 @@ export type Database = {
           production_year: number | null
           serial_number: string
           short_description: string | null
+          slug: string
           updated_at: string
           wheels: string | null
           working_hours: number | null
@@ -98,6 +99,7 @@ export type Database = {
           production_year?: number | null
           serial_number: string
           short_description?: string | null
+          slug: string
           updated_at?: string
           wheels?: string | null
           working_hours?: number | null
@@ -124,6 +126,7 @@ export type Database = {
           production_year?: number | null
           serial_number?: string
           short_description?: string | null
+          slug?: string
           updated_at?: string
           wheels?: string | null
           working_hours?: number | null
@@ -191,6 +194,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_product_slug: {
+        Args: { product_name: string; serial_number?: string }
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]

@@ -1,19 +1,18 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { HelmetProvider } from 'react-helmet-async';
-import App from './App.tsx';
-import './index.css';
-import { trackWebVitals } from './utils/performance';
 
-// Initialize Web Vitals tracking dla 2024
-if (typeof window !== 'undefined') {
-  trackWebVitals();
-}
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { HelmetProvider } from 'react-helmet-async';
+import App from "./App.tsx";
+import "./index.css";
+import * as serviceWorker from './utils/serviceWorker';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
       <App />
     </HelmetProvider>
-  </StrictMode>,
+  </StrictMode>
 );
+
+// Register service worker for PWA functionality
+serviceWorker.register();
