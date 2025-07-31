@@ -4,6 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { useMobileOptimization } from '@/hooks/useMobileOptimization';
+import { usePageOptimization } from '@/hooks/usePageOptimization';
 import GeoTargetingScript from '@/components/seo/GeoTargetingScript';
 
 interface LayoutProps {
@@ -16,6 +17,11 @@ const Layout = ({ children }: LayoutProps) => {
     enableServiceWorker: true,
     enableTouchOptimization: true,
     enableProgressiveLoading: true
+  });
+  usePageOptimization({
+    enableImageLazyLoading: true,
+    enablePrefetching: true,
+    enableCriticalResourceHints: true
   });
 
   return (

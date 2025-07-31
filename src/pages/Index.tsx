@@ -133,17 +133,11 @@ const Index = () => {
       <GeoTargetingSchema />
       {/* Hero Section with Background Image */}
       <section 
-        className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-toyota-black text-white min-h-[600px] flex items-center"
-        style={{
-          backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.1) 100%), url('/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
+        className="hero-section relative bg-gradient-to-br from-gray-900 via-gray-800 to-toyota-black text-white min-h-[600px] flex items-center"
       >
         <div className="container-custom py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 md:pr-8 animate-fade-in">
+            <div className="space-y-6 md:pr-8 text-fade-in">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 {t('heroTitle')}
               </h1>

@@ -36,6 +36,17 @@
     <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"></noscript>
+    
+    <!-- Preload hero image for LCP optimization -->
+    <link rel="preload" as="image" href="/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png" fetchpriority="high">
+    
+    <!-- Critical CSS inlined for faster FCP -->
+    <style>
+      body{margin:0;font-family:'Montserrat',sans-serif}
+      .hero-section{background:linear-gradient(135deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,.6) 40%,rgba(0,0,0,.3) 70%,rgba(0,0,0,.1) 100%),url('/lovable-uploads/cba7623d-e272-43d2-9cb1-c4864cb74fde.png');background-size:cover;background-position:center;min-height:600px}
+      .text-fade-in{animation:fadeInUp .8s ease-out}
+      @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    </style>
 
     <meta property="og:title" content="Stakerpol Wózki paletowe BT Toyota" />
     <meta property="og:description" content="Profesjonalna sprzedaż i serwis wózków widłowych BT Toyota. Zadzwoń i skorzystaj z fachowego doradztwa!" />
