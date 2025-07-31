@@ -7,10 +7,17 @@ const isLocalhost = Boolean(
   )
 );
 
+// Get public URL with fallback for browser environment
+const getPublicUrl = () => {
+  // In browser environment, process.env might not be available
+  const publicUrl = typeof process !== 'undefined' && process.env ? process.env.PUBLIC_URL : '';
+  return publicUrl || '';
+};
+
 export function register() {
   if ('serviceWorker' in navigator) {
     const publicUrl = new URL(
-      process.env.PUBLIC_URL || '/',
+      getPublicUrl() || '/',
       window.location.href
     );
     if (publicUrl.origin !== window.location.origin) {
@@ -18,7 +25,7 @@ export function register() {
     }
 
     window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL || ''}/sw.js`;
+      const swUrl = `${getPublicUrl()}/sw.js`;
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl);
