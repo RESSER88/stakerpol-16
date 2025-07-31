@@ -45,6 +45,14 @@ const Header = () => {
                 key={item.to}
                 to={item.to} 
                 className="font-medium hover:text-toyota-orange transition-colors"
+                onClick={() => {
+                  // Auto-scroll to top when FAQ is clicked
+                  if (item.to === '/faq') {
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                  }
+                }}
               >
                 {item.label}
               </Link>
@@ -84,16 +92,24 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden pt-4 pb-2 animate-slide-in">
             <nav className="flex flex-col space-y-4">
-              {navigationItems.map((item) => (
-                <Link 
-                  key={item.to}
-                  to={item.to} 
-                  className="font-medium py-2 hover:text-toyota-orange transition-colors touch-manipulation"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            {navigationItems.map((item) => (
+              <Link 
+                key={item.to}
+                to={item.to} 
+                className="font-medium py-2 hover:text-toyota-orange transition-colors touch-manipulation"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  // Auto-scroll to top when FAQ is clicked
+                  if (item.to === '/faq') {
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                  }
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
               {adminNavItem && (
                 <Link 
                   to={adminNavItem.to} 

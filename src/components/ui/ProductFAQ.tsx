@@ -13,23 +13,31 @@ interface ProductFAQProps {
 }
 
 const ProductFAQ = ({ product }: ProductFAQProps) => {
-  // FAQ specyficzne dla produktu
+  // FAQ zgodne z tymi z strony głównej (najczęściej zadawane pytania)
   const productFAQ = [
     {
-      question: `Czy ${product.model} ma aktualny przegląd UDT?`,
-      answer: "Tak, wózek posiada aktualny przegląd UDT. Wraz z zakupem otrzymasz wszystkie dokumenty eksploatacyjne."
+      question: "Czy do obsługi wózka potrzebne są uprawnienia UDT?",
+      answer: "Tak, wymagane są uprawnienia UDT do obsługi wózków widłowych. Operator musi posiadać ważne świadectwo kwalifikacji wydane przez Urząd Dozoru Technicznego."
     },
     {
-      question: `Jak długo ładuje się bateria w modelu ${product.model}?`,
-      answer: `Bateria w modelu ${product.model} ładuje się przez 6-8 godzin. Wózek jest wyposażony w profesjonalny prostownik z automatycznym wyłączaniem.`
+      question: "Czy używane wózki są objęte gwarancją?",
+      answer: "Tak, wszystkie nasze używane wózki są objęte 3-miesięczną gwarancją. Gwarancja obejmuje sprawność mechaniczną i elektryczną urządzenia."
     },
     {
-      question: `Czy ${product.model} nadaje się do pracy w chłodni?`,
-      answer: "Tak, wózek może pracować w chłodni. Toyota BT są przystosowane do pracy w niskich temperaturach z odpowiednim olejem hydraulicznym."
+      question: "Jak długo ładuje się bateria wózka?",
+      answer: "Pełne ładowanie baterii trwa 6-8 godzin w zależności od modelu wózka oraz parametrów prostownika. Nowoczesne prostowniki mają automatyczne wyłączanie."
     },
     {
-      question: `Jakie są koszty eksploatacji ${product.model}?`,
-      answer: "Koszt eksploatacji to głównie energia elektryczna (ok. 3-5 zł za 8h pracy) oraz okresowe przeglądy serwisowe. Brak kosztów paliwa i niskie koszty utrzymania."
+      question: "Czy oferowane wózki używane przechodzą przegląd techniczny?",
+      answer: "Tak, każdy wózek przed sprzedażą przechodzi dokładny przegląd techniczny. Sprawdzamy wszystkie systemy: hydrauliczny, elektryczny, hamulcowy oraz stan ogólny."
+    },
+    {
+      question: "Czy można przetestować wózek przed zakupem?",
+      answer: "Tak, zachęcamy do osobistego obejrzenia i przetestowania wózka przed zakupem. Umówimy wizytę w naszym magazynie, gdzie można sprawdzić wszystkie funkcje urządzenia."
+    },
+    {
+      question: "Jakie są dostępne formy dostawy wózka?",
+      answer: "Oferujemy dwie formy dostawy: odbiór osobisty z naszego magazynu oraz wysyłkę kurierską na podest. Koszt dostawy zależy od odległości i wagi urządzenia."
     }
   ];
 

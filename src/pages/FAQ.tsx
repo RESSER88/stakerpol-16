@@ -243,8 +243,8 @@ const FAQ = () => {
                 Skontaktuj się z nami bezpośrednio - chętnie odpowiemy na wszystkie pytania
               </p>
               <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <span>📞 Tel: +48 123 456 789</span>
-                <span>✉️ Email: kontakt@stakerpol.pl</span>
+                <span>📞 Tel: +48 694 133 592</span>
+                <span>✉️ Email: info@stakerpol.pl</span>
               </div>
             </div>
           </div>
