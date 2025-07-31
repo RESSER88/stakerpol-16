@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
+import { useMobileOptimization } from '@/hooks/useMobileOptimization';
 import GeoTargetingScript from '@/components/seo/GeoTargetingScript';
 
 interface LayoutProps {
@@ -11,6 +12,11 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   useScrollToTop();
+  useMobileOptimization({
+    enableServiceWorker: true,
+    enableTouchOptimization: true,
+    enableProgressiveLoading: true
+  });
 
   return (
     <div className="min-h-screen flex flex-col">

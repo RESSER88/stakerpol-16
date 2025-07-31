@@ -306,3 +306,62 @@
     @apply gap-2;
   }
 }
+
+/* Mobile-First Touch Optimization */
+.touch-optimized {
+  /* Improve touch targets */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch-optimized button,
+.touch-optimized a,
+.touch-optimized [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Progressive loading animations */
+.progressive-load {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.progressive-load.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile performance optimizations */
+@media (max-width: 768px) {
+  /* Reduce motion for better performance on mobile */
+  .animate-fade-in {
+    animation-duration: 0.3s;
+  }
+  
+  /* Optimize scroll performance */
+  .overflow-auto,
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better mobile typography */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Touch-friendly interactive elements */
+  .hover\:scale-105:hover {
+    transform: none; /* Disable hover effects on mobile */
+  }
+  
+  /* Better mobile spacing */
+  .container-custom {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

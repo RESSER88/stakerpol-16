@@ -14,6 +14,17 @@ const Header = () => {
   const t = useTranslation(language);
   const { user, isAdmin } = useSupabaseAuth();
 
+  // Ensure mobile and desktop have identical navigation content
+  const navigationItems = [
+    { to: "/", label: t('home') },
+    { to: "/products", label: t('electricTrolleys') },
+    { to: "/testimonials", label: t('testimonials') },
+    { to: "/contact", label: t('contact') },
+    { to: "/faq", label: "FAQ" }
+  ];
+
+  const adminNavItem = user && isAdmin ? { to: "/admin", label: "Admin" } : null;
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -27,27 +38,24 @@ const Header = () => {
             <span className="text-2xl font-bold text-toyota-orange tracking-tight">Stakerpol</span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Identical content to mobile */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="font-medium hover:text-toyota-orange transition-colors">
-              {t('home')}
-            </Link>
-            <Link to="/products" className="font-medium hover:text-toyota-orange transition-colors">
-              {t('electricTrolleys')}
-            </Link>
-            <Link to="/testimonials" className="font-medium hover:text-toyota-orange transition-colors">
-              {t('testimonials')}
-            </Link>
-            <Link to="/contact" className="font-medium hover:text-toyota-orange transition-colors">
-              {t('contact')}
-            </Link>
-            <Link to="/faq" className="font-medium hover:text-toyota-orange transition-colors">
-              FAQ
-            </Link>
-            {user && isAdmin && (
-              <Link to="/admin" className="font-medium hover:text-toyota-orange transition-colors flex items-center gap-1">
+            {navigationItems.map((item) => (
+              <Link 
+                key={item.to}
+                to={item.to} 
+                className="font-medium hover:text-toyota-orange transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {adminNavItem && (
+              <Link 
+                to={adminNavItem.to} 
+                className="font-medium hover:text-toyota-orange transition-colors flex items-center gap-1"
+              >
                 <Settings className="h-4 w-4" />
-                Admin
+                {adminNavItem.label}
               </Link>
             )}
             <LanguageSwitcher />
@@ -72,56 +80,31 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - Identical content to desktop */}
         {isMenuOpen && (
           <div className="md:hidden pt-4 pb-2 animate-slide-in">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/" 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('home')}
-              </Link>
-              <Link 
-                to="/products" 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('electricTrolleys')}
-              </Link>
-              <Link 
-                to="/testimonials" 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('testimonials')}
-              </Link>
-              <Link 
-                to="/contact" 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('contact')}
-              </Link>
-              <Link 
-                to="/faq" 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                FAQ
-              </Link>
-              {user && isAdmin && (
+              {navigationItems.map((item) => (
                 <Link 
-                  to="/admin" 
-                  className="font-medium py-2 hover:text-toyota-orange transition-colors flex items-center gap-2"
+                  key={item.to}
+                  to={item.to} 
+                  className="font-medium py-2 hover:text-toyota-orange transition-colors touch-manipulation"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {adminNavItem && (
+                <Link 
+                  to={adminNavItem.to} 
+                  className="font-medium py-2 hover:text-toyota-orange transition-colors flex items-center gap-2 touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Settings className="h-4 w-4" />
-                  Panel administratora
+                  {adminNavItem.label}
                 </Link>
               )}
-              <Button className="cta-button w-full" asChild>
+              <Button className="cta-button w-full touch-manipulation" asChild>
                 <a href="tel:+48694133592">
                   <Phone className="mr-2 h-4 w-4" />
                   +48 694 133 592
