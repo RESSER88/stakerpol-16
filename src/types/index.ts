@@ -2,6 +2,7 @@
 export interface Product {
   id: string;
   model: string;
+  slug?: string; // SEO-friendly URL slug
   image: string; // Keep for backward compatibility - will be same as images[0]
   images: string[]; // Array of up to 5 images
   shortDescription: string;

@@ -12,6 +12,7 @@ export const mapSupabaseProductToProduct = (supabaseProduct: SupabaseProduct, im
   return {
     id: supabaseProduct.id,
     model: supabaseProduct.name,
+    slug: (supabaseProduct as any).slug, // TypeScript will be updated with migration
     image: supabaseProduct.image_url || (images.length > 0 ? images[0].image_url : ''),
     images: images.map(img => img.image_url).filter(Boolean),
     shortDescription: supabaseProduct.short_description || '',
