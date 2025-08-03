@@ -64,8 +64,14 @@ serve(async (req) => {
           caption: img.alt_text || `${product.name} - wózek widłowy elektryczny Stakerpol`
         })) || [];
       
+      // Generate SEO-friendly slug from name
+      const slug = product.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
       return {
-        url: `/products/${product.id}`,
+        url: `/products/${slug}`,
         lastmod: product.updated_at || now,
         changefreq: 'weekly',
         priority: '0.8',

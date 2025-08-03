@@ -12,8 +12,7 @@ export const useProductBySlug = (slug: string | undefined) => {
 
       console.log('Fetching product by slug:', slug);
 
-      // For now, fetch by name since slug field needs migration
-      // This is a temporary solution until database migration is complete
+      // Fallback to name-based search (temporary until slug field is added)
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('*')

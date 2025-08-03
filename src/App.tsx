@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import ProductDetailSlug from "./pages/ProductDetailSlug";
-import ProductRedirect from "./components/routing/ProductRedirect";
+import { useSEORedirects } from '@/hooks/useSEORedirects';
 import Testimonials from "./pages/Testimonials";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
@@ -29,6 +29,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  useSEORedirects(); // Enable automatic UUID to slug redirects
   useEffect(() => {
     // Track web vitals in production with error handling
     if (process.env.NODE_ENV === 'production') {

@@ -10,6 +10,8 @@ import { Loader2, Package, Settings, Image, Users, BarChart3, Wrench, CheckCircl
 import AdminLogin from '@/components/admin/AdminLogin';
 import ProductManager from '@/components/admin/ProductManager';
 import ImageMigrationTool from '@/components/admin/ImageMigrationTool';
+import { EnhancedMigrationDashboard } from '@/components/admin/EnhancedMigrationDashboard';
+import { SEORollbackManager } from '@/components/admin/SEORollbackManager';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -241,22 +243,26 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Produkty
             </TabsTrigger>
+            <TabsTrigger value="enhanced-migration" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              Enhanced Migration
+            </TabsTrigger>
             <TabsTrigger value="images" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
-              Migracja zdjęć
+              Legacy Migration
+            </TabsTrigger>
+            <TabsTrigger value="rollback" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              SEO & Rollback
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Statystyki
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Ustawienia
             </TabsTrigger>
           </TabsList>
 
@@ -276,6 +282,17 @@ const Admin = () => {
               addProduct={addProduct}
               updateProduct={updateProduct}
             />
+          </TabsContent>
+
+          <TabsContent value="enhanced-migration">
+            <EnhancedMigrationDashboard 
+              isAdmin={true} 
+              products={products || []}
+            />
+          </TabsContent>
+
+          <TabsContent value="rollback">
+            <SEORollbackManager />
           </TabsContent>
 
           <TabsContent value="images">
@@ -377,40 +394,6 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ustawienia systemu</CardTitle>
-                <CardDescription>
-                  Konfiguracja i zarządzanie systemem
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Supabase Storage</h3>
-                      <p className="text-sm text-gray-600">
-                        Bucket 'product-images' skonfigurowany
-                      </p>
-                    </div>
-                    <Badge variant="default">Aktywny</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Realtime Sync</h3>
-                      <p className="text-sm text-gray-600">
-                        Synchronizacja w czasie rzeczywistym
-                      </p>
-                    </div>
-                    <Badge variant="default">Włączony</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
