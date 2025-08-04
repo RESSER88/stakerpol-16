@@ -1,5 +1,4 @@
-
-import { useEffect } from 'react';
+// Fresh rewrite to solve caching issues - NO HOOKS OUTSIDE COMPONENTS
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,41 +9,25 @@ import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import ProductDetailSlug from "./pages/ProductDetailSlug";
-import { useSEORedirects } from '@/hooks/useSEORedirects';
 import Testimonials from "./pages/Testimonials";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 
+// Query client configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 2,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => {
-  useSEORedirects(); // Enable automatic UUID to slug redirects
-  useEffect(() => {
-    // Track web vitals in production with error handling
-    if (process.env.NODE_ENV === 'production') {
-      try {
-        import('./utils/performance').then(({ trackWebVitals }) => {
-          trackWebVitals();
-        }).catch((error) => {
-          console.warn('Failed to load performance tracking:', error);
-        });
-      } catch (error) {
-        console.warn('Error setting up performance tracking:', error);
-      }
-    }
-  }, []);
-
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
@@ -55,13 +38,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
-              
-              {/* New slug-based product routes (preferred) */}
               <Route path="/products/:slug" element={<ProductDetailSlug />} />
-              
-              {/* Legacy UUID routes for backward compatibility */}
               <Route path="/products/:id" element={<ProductDetail />} />
-              
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
@@ -73,6 +51,6 @@ const App = () => {
       </LanguageProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
