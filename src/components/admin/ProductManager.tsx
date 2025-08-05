@@ -115,9 +115,6 @@ const ProductManager = ({
   };
 
   const handleSave = (product: Product, images: string[]) => {
-    console.log('=== PRODUCT MANAGER SAVE ===');
-    console.log('Selected product for save decision:', selectedProduct);
-    console.log('Product to save:', product);
     
     // Check if this is editing an existing product vs adding new/copy
     const isEditingExisting = selectedProduct && 
@@ -125,13 +122,13 @@ const ProductManager = ({
       !selectedProduct.model.includes('(kopia)') &&
       products.some(p => p.id === selectedProduct.id);
     
-    console.log('Is editing existing in ProductManager:', isEditingExisting);
+    
     
     if (isEditingExisting) {
-      console.log('Calling updateProduct with ID:', product.id);
+      
       updateProduct(product, images);
     } else {
-      console.log('Calling addProduct for new/copied product');
+      
       addProduct(product, images);
     }
     

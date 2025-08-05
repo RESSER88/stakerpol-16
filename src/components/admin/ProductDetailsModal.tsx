@@ -42,7 +42,7 @@ const ProductDetailsModal = ({
 
   useEffect(() => {
     if (selectedProduct) {
-      console.log('Setting edited product from selected:', selectedProduct);
+      
       setEditedProduct({...selectedProduct});
     } else {
       const newProduct = {
@@ -51,7 +51,7 @@ const ProductDetailsModal = ({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      console.log('Setting new product:', newProduct);
+      
       setEditedProduct(newProduct);
     }
   }, [selectedProduct, defaultNewProduct]);
@@ -73,16 +73,13 @@ const ProductDetailsModal = ({
     setIsLoading(true);
     
     try {
-      console.log('=== MODAL SAVE ===');
-      console.log('Selected product for validation:', selectedProduct);
-      console.log('Edited product:', editedProduct);
       
       // For validation, use the original product ID if editing existing
       const productIdForValidation = selectedProduct?.id && !selectedProduct.model.includes('(kopia)') 
         ? selectedProduct.id 
         : undefined;
       
-      console.log('Using product ID for validation:', productIdForValidation);
+      
       
       if (!validateProduct(editedProduct, productImages, productIdForValidation)) {
         setIsLoading(false);
@@ -101,8 +98,6 @@ const ProductDetailsModal = ({
         updatedAt: new Date().toISOString()
       };
 
-      console.log('Final product to save:', productToSave);
-      console.log('Is editing existing in modal:', isEditingExisting);
 
       onSave(productToSave, productImages);
       

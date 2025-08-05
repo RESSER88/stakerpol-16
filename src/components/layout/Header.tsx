@@ -35,7 +35,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-toyota-orange tracking-tight">Stakerpol</span>
+            <span className="text-2xl font-bold text-stakerpol-orange tracking-tight">Stakerpol</span>
           </Link>
 
           {/* Desktop Navigation - Identical content to mobile */}
@@ -44,7 +44,7 @@ const Header = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className="font-medium hover:text-toyota-orange transition-colors"
+                className="font-medium hover:text-stakerpol-orange transition-colors"
                 onClick={() => {
                   // Auto-scroll to top when FAQ is clicked
                   if (item.to === '/faq') {
@@ -60,7 +60,7 @@ const Header = () => {
             {adminNavItem && (
               <Link 
                 to={adminNavItem.to} 
-                className="font-medium hover:text-toyota-orange transition-colors flex items-center gap-1"
+                className="font-medium hover:text-stakerpol-orange transition-colors flex items-center gap-1"
               >
                 <Settings className="h-4 w-4" />
                 {adminNavItem.label}
@@ -80,7 +80,7 @@ const Header = () => {
             <LanguageSwitcher />
             <button
               onClick={toggleMenu}
-              className="text-gray-800 hover:text-toyota-orange transition-all"
+              className="text-gray-800 hover:text-stakerpol-orange transition-all"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -96,7 +96,7 @@ const Header = () => {
               <Link 
                 key={item.to}
                 to={item.to} 
-                className="font-medium py-2 hover:text-toyota-orange transition-colors touch-manipulation"
+                className="font-medium py-2 hover:text-stakerpol-orange transition-colors touch-manipulation"
                 onClick={() => {
                   setIsMenuOpen(false);
                   // Auto-scroll to top when FAQ is clicked
@@ -113,7 +113,7 @@ const Header = () => {
               {adminNavItem && (
                 <Link 
                   to={adminNavItem.to} 
-                  className="font-medium py-2 hover:text-toyota-orange transition-colors flex items-center gap-2 touch-manipulation"
+                  className="font-medium py-2 hover:text-stakerpol-orange transition-colors flex items-center gap-2 touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Settings className="h-4 w-4" />
