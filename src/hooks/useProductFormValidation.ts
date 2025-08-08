@@ -43,6 +43,14 @@ export const useProductFormValidation = (products: Product[]) => {
     }
 
     const serialNumber = product.specs.serialNumber?.trim();
+    if (!serialNumber) {
+      toast({
+        title: "Błąd walidacji",
+        description: "Numer seryjny jest wymagany",
+        variant: "destructive"
+      });
+      return false;
+    }
     if (serialNumber && !checkSerialNumberUnique(serialNumber, selectedProductId)) {
       toast({
         title: "Błąd walidacji",
