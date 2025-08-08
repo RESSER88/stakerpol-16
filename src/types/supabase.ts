@@ -1,5 +1,6 @@
 
 import { Database } from '@/integrations/supabase/types';
+import { generateSlug } from '@/utils/generateSlug';
 
 // Typy z Supabase
 export type SupabaseProduct = Database['public']['Tables']['products']['Row'];
@@ -44,10 +45,13 @@ export const mapSupabaseProductToProduct = (supabaseProduct: SupabaseProduct, im
 };
 
 export const mapProductToSupabaseInsert = (product: any): SupabaseProductInsert => {
-  return {
+  const serial = (product?.specs?.serialNumber?.trim?.()) || `AUTO-${Date.now()}`;
+  const slug = generateSlug(product?.model || '', serial);
+  const payload: any = {
     name: product.model,
+    slug,
     short_description: product.shortDescription,
-    serial_number: product.specs.serialNumber || `AUTO-${Date.now()}`,
+    serial_number: serial,
     production_year: product.specs.productionYear ? parseInt(product.specs.productionYear) : null,
     lift_capacity_mast: product.specs.mastLiftingCapacity ? parseFloat(product.specs.mastLiftingCapacity) : null,
     lift_capacity_initial: product.specs.preliminaryLiftingCapacity ? parseFloat(product.specs.preliminaryLiftingCapacity) : null,
@@ -67,11 +71,36 @@ export const mapProductToSupabaseInsert = (product: any): SupabaseProductInsert 
     detailed_description: product.specs.additionalDescription,
     image_url: product.images && product.images.length > 0 ? product.images[0] : product.image
   };
+  return payload;
 };
 
 export const mapProductToSupabaseUpdate = (product: any): SupabaseProductUpdate => {
-  return {
-    ...mapProductToSupabaseInsert(product),
+  const update: any = {
+    name: product.model,
+    short_description: product.shortDescription,
+    serial_number: product.specs?.serialNumber?.trim?.() || null,
+    production_year: product.specs?.productionYear ? parseInt(product.specs.productionYear) : null,
+    lift_capacity_mast: product.specs?.mastLiftingCapacity ? parseFloat(product.specs.mastLiftingCapacity) : null,
+    lift_capacity_initial: product.specs?.preliminaryLiftingCapacity ? parseFloat(product.specs.preliminaryLiftingCapacity) : null,
+    working_hours: product.specs?.workingHours ? parseFloat(product.specs.workingHours) : null,
+    lift_height: product.specs?.liftHeight ? parseFloat(product.specs.liftHeight) : null,
+    min_height: product.specs?.minHeight ? parseFloat(product.specs.minHeight) : null,
+    initial_lift: product.specs?.preliminaryLifting ?? null,
+    battery: product.specs?.battery ?? null,
+    condition: product.specs?.condition ?? null,
+    drive_type: product.specs?.driveType ?? null,
+    mast: product.specs?.mast ?? null,
+    free_lift: product.specs?.freeStroke ? parseFloat(product.specs.freeStroke) : null,
+    dimensions: product.specs?.dimensions ?? null,
+    wheels: product.specs?.wheels ?? null,
+    foldable_platform: product.specs?.operatorPlatform ?? null,
+    additional_options: product.specs?.additionalOptions ?? null,
+    detailed_description: product.specs?.additionalDescription ?? null,
+    image_url: product.images && product.images.length > 0 ? product.images[0] : product.image,
     updated_at: new Date().toISOString()
   };
+  if (product.slug && typeof product.slug === 'string') {
+    update.slug = product.slug;
+  }
+  return update as SupabaseProductUpdate;
 };
